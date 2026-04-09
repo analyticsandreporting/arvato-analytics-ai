@@ -199,7 +199,74 @@ canvas{max-height:220px}
 
 <script>
 // ═══ STATE ═══
-let DATA=[], COLS={}, apiKey='', adminPw='arvato2024', history=[], chartRefs=[];
+let DATA=[], COLS={}, apiKey='', adminPw='arvato2024', history=[], chartRefs=[], dataStats=null;
+
+function loadSettings(){
+  try{
+    apiKey=localStorage.getItem('arvato_api_key')||'';
+    adminPw=localStorage.getItem('arvato_admin_pw')||adminPw;
+  }catch(e){}
+}
+
+function persistSettings(){
+  try{
+    localStorage.setItem('arvato_api_key', apiKey||'');
+    localStorage.setItem('arvato_admin_pw', adminPw||'');
+  }catch(e){}
+}
+
+function escapeHtml(str=''){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function safeHtml(str=''){
+  return escapeHtml(str)
+    .replace(/
+/g,'<br>')
+    .replace(/▲/g,'<span class="pos">▲</span>')
+    .replace(/▼/g,'<span class="neg">▼</span>');
+}
+
+function getPptxGen(){
+  return window.PptxGenJS || window.pptxgen || window.pptxgenjs || null;
+}
+
+function canRunWithoutApi(question=''){
+  const intent=detectIntent(question||'');
+  return intent!=='ai';
+}
+
+function normalizeExcelDate(value){
+  if(value instanceof Date && !isNaN(value)) return value.toISOString().split('T')[0];
+  if(typeof value==='number' && value>20000){
+    const excelEpoch=new Date(Date.UTC(1899,11,30));
+    const converted=new Date(excelEpoch.getTime()+value*86400000);
+    return converted.toISOString().split('T')[0];
+  }
+  if(typeof value==='string'){
+    const trimmed=value.trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0,10);
+    if(/^\d{2}[./-]\d{2}[./-]\d{4}$/.test(trimmed)){
+      const [d,m,y]=trimmed.split(/[./-]/);
+      return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+    const parsed=new Date(trimmed);
+    if(!isNaN(parsed)) return parsed.toISOString().split('T')[0];
+  }
+  return '';
+}
+
+function computeDataStats(){
+  if(!DATA.length){ dataStats=null; return; }
+  const dates=DATA.map(r=>r._date).filter(Boolean).sort();
+  const projects=new Set(DATA.map(r=>r[COLS.proj]).filter(Boolean));
+  dataStats={rows:DATA.length, projects:projects.size, start:dates[0]||'—', end:dates[dates.length-1]||'—'};
+}
 
 // ═══ KOLON TESPİT ═══
 function detectCols(row) {
@@ -222,7 +289,7 @@ function detectCols(row) {
   if(!COLS.b2b_hand) COLS.b2b_hand=COLS.b2b_order;
 }
 
-function v(row,col){ return !col||!(col in row)?0:Number(row[col])||0; }
+function v(row,col){ return !col||!(col in row)?0:Number(String(row[col]).replace(/,/g,''))||0; }
 function fmt(n){ return Math.round(n).toLocaleString('tr'); }
 function gr(a,b){ return a===0?null:((b-a)/a*100).toFixed(1); }
 function fmtPct(n){
@@ -237,16 +304,15 @@ function handleUpload(e) {
   const reader=new FileReader();
   reader.onload=ev=>{
     try {
-      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true,raw:true});
       const sn=wb.SheetNames.find(n=>n.toLowerCase()==='data')||wb.SheetNames[0];
-      const raw=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:0});
+      const raw=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:0,raw:true});
       DATA=raw.map(row=>{
         const dk=Object.keys(row).find(k=>k.toLowerCase().includes('tarih')||k.toLowerCase().includes('date'))||Object.keys(row)[0];
-        const d=row[dk];
-        row._date=d instanceof Date?d.toISOString().split('T')[0]:typeof d==='string'?d.split('T')[0]:'';
-        return row;
+        return {...row,_date:normalizeExcelDate(row[dk])};
       }).filter(r=>r._date&&r._date.length>=7);
       if(DATA.length) detectCols(DATA[0]);
+      computeDataStats();
       document.getElementById('upOk').style.display='flex';
       document.getElementById('upTxt').textContent=`${file.name} — ${DATA.length.toLocaleString('tr')} satır`;
       updateStatus();
@@ -257,15 +323,14 @@ function handleUpload(e) {
 
 function updateStatus(){
   if(!DATA.length) return;
+  if(!dataStats) computeDataStats();
   document.getElementById('dstat').className='dstat on';
-  document.getElementById('dstatTxt').textContent=`${DATA.length.toLocaleString('tr')} kayıt hazır`;
+  document.getElementById('dstatTxt').textContent=`${dataStats.rows.toLocaleString('tr')} kayıt hazır`;
   document.getElementById('sg').style.display='grid';
-  const projs=[...new Set(DATA.map(r=>r[COLS.proj]))].filter(Boolean);
-  const dates=DATA.map(r=>r._date).sort();
-  document.getElementById('sRows').textContent=DATA.length.toLocaleString('tr');
-  document.getElementById('sProj').textContent=projs.length;
-  document.getElementById('sStart').textContent=dates[0]?.slice(0,7)||'—';
-  document.getElementById('sEnd').textContent=dates[dates.length-1]?.slice(0,7)||'—';
+  document.getElementById('sRows').textContent=dataStats.rows.toLocaleString('tr');
+  document.getElementById('sProj').textContent=dataStats.projects;
+  document.getElementById('sStart').textContent=dataStats.start?.slice(0,7)||'—';
+  document.getElementById('sEnd').textContent=dataStats.end?.slice(0,7)||'—';
   document.getElementById('sdot').className='sdot on';
   document.getElementById('stxt').textContent='Veri hazır';
   updateBtn();
@@ -511,7 +576,7 @@ SEKTÖRLER: ${bySec.map(r=>`${r.sector}:${fmt(r.total)}`).join(', ')}`;
   });
   if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API hatası');}
   const data=await resp.json();
-  const text=data.choices?.[0]?.message?.content||'Yanıt alınamadı.';
+  const text=(data.choices?.[0]?.message?.content||'Yanıt alınamadı.').trim();
   history.push({role:'user',content:question},{role:'assistant',content:text});
   if(history.length>20) history=history.slice(-20);
   return {text};
@@ -526,7 +591,9 @@ async function generatePresentation(year){
   const prevY=yearly.find(r=>r.year===(parseInt(yr)-1).toString());
   const grVal=prevY?gr(prevY.total,thisY?.total):null;
 
-  const pptx=new PptxGenJS();
+  const PptxCtor=getPptxGen();
+  if(!PptxCtor) throw new Error('PptxGenJS yüklenemedi. İnternet erişimi veya CDN bağlantısını kontrol et.');
+  const pptx=new PptxCtor();
   pptx.layout='LAYOUT_WIDE';
   const BLU='#0066B3',WHT='#FFFFFF',LGT='#e8f2fb',GRY='#6b7f96';
 
@@ -611,14 +678,12 @@ function renderResult(result,container){
   if(result.text){
     const b=document.createElement('div');
     b.className='bubble';
-    b.innerHTML=result.text.replace(/▲/g,'<span class="pos">▲</span>').replace(/▼/g,'<span class="neg">▼</span>').replace(/\n/g,'<br>');
+    b.innerHTML=safeHtml(result.text);
     container.appendChild(b);
   }
   if(result.noChart) return;
 
   if(result.chart){
-    chartRefs.forEach(c=>{try{c.destroy()}catch(e){}});
-    chartRefs=[];
     const card=document.createElement('div'); card.className='chart-card';
     const id='c'+Date.now();
     card.innerHTML=`<div class="chart-title">${result.chart.title}</div><canvas id="${id}"></canvas>`;
@@ -652,7 +717,7 @@ function renderResult(result,container){
     html+='</tr></thead><tbody>';
     result.table.rows.forEach(row=>{
       html+='<tr>';
-      row.forEach(cell=>{const s=String(cell);const cls=s.includes('▲')?'pos':s.includes('▼')?'neg':'';html+=`<td class="${cls}">${s}</td>`;});
+      row.forEach(cell=>{const s=String(cell);const cls=s.includes('▲')?'pos':s.includes('▼')?'neg':'';html+=`<td class="${cls}">${escapeHtml(s)}</td>`;});
       html+='</tr>';
     });
     html+='</tbody></table>';
@@ -670,7 +735,14 @@ function renderResult(result,container){
       if(d.sectors)  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.sectors),'Sektörler');
       XLSX.writeFile(wb,`Arvato_Analiz_${Date.now()}.xlsx`);};
     const pb=document.createElement('button'); pb.className='exp-btn pptx'; pb.innerHTML='📊 Sunum İndir';
-    pb.onclick=()=>send('sunum hazırla');
+    pb.onclick=async()=>{
+      try{
+        const inferredYear=(result.exportData.monthly?.[0]?.month||result.exportData.yearly?.[0]?.year||'').slice(0,4);
+        await generatePresentation(inferredYear || new Date().getFullYear().toString());
+      }catch(err){
+        alert('Sunum oluşturulamadı: '+err.message);
+      }
+    };
     row.appendChild(eb); row.appendChild(pb); container.appendChild(row);
   }
 }
@@ -679,12 +751,17 @@ function renderResult(result,container){
 async function send(overrideQ){
   const inp=document.getElementById('inp');
   const question=(overrideQ||inp.value).trim();
-  if(!question||!DATA.length||!apiKey) return;
+  if(!question||!DATA.length) return;
+  if(detectIntent(question)==='ai' && !apiKey){
+    alert('Serbest AI soruları için API anahtarı gerekli. Hazır analizler API olmadan çalışır.');
+    openAdmin();
+    return;
+  }
   if(!overrideQ){inp.value='';autoResize(inp);}
   document.getElementById('sndBtn').disabled=true;
   const msgs=document.getElementById('msgs');
   const um=document.createElement('div'); um.className='msg user';
-  um.innerHTML=`<div class="av">👤</div><div class="mc"><div class="bubble">${question}</div></div>`;
+  um.innerHTML=`<div class="av">👤</div><div class="mc"><div class="bubble">${escapeHtml(question)}</div></div>`;
   msgs.appendChild(um);
   const tm=document.createElement('div'); tm.className='msg ai';
   tm.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="thinking"><div class="tdots"><span></span><span></span><span></span></div> Analiz yapılıyor...</div></div>`;
@@ -699,24 +776,32 @@ async function send(overrideQ){
   } catch(err){
     tm.remove();
     const em=document.createElement('div'); em.className='msg ai';
-    em.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="bubble" style="color:var(--red)">Hata: ${err.message}</div></div>`;
+    em.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="bubble" style="color:var(--red)">Hata: ${escapeHtml(err.message)}</div></div>`;
     msgs.appendChild(em);
   }
   msgs.scrollTop=msgs.scrollHeight;
-  document.getElementById('sndBtn').disabled=false;
+  updateBtn();
   if(!overrideQ) document.getElementById('inp').focus();
 }
 
-function suggest(el){if(!DATA.length||!apiKey){openAdmin();return;}document.getElementById('inp').value=el.textContent;send();}
+function suggest(el){if(!DATA.length){openAdmin();return;}document.getElementById('inp').value=el.textContent;send();}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
-function updateBtn(){document.getElementById('sndBtn').disabled=!(DATA.length&&apiKey);}
+function updateBtn(){
+  const q=(document.getElementById('inp')?.value||'').trim();
+  const disabled=!DATA.length || (q ? (!canRunWithoutApi(q) && !apiKey) : false);
+  document.getElementById('sndBtn').disabled=disabled;
+}
 
 // ═══ ADMIN ═══
-function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPnl').style.display='none';document.getElementById('pwErr').style.display='none';document.getElementById('pwInp').value='';}
+function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPnl').style.display='none';document.getElementById('pwErr').style.display='none';document.getElementById('pwInp').value='';document.getElementById('apiInp').value=apiKey||'';}
 function closeAdmin(){document.getElementById('adminModal').classList.remove('open');}
 function checkPw(){if(document.getElementById('pwInp').value===adminPw){document.getElementById('loginSec').style.display='none';document.getElementById('adminPnl').style.display='block';document.getElementById('apiInp').value=apiKey;}else{document.getElementById('pwErr').style.display='block';}}
-function saveAdmin(){apiKey=document.getElementById('apiInp').value.trim();const np=document.getElementById('newPw').value;if(np)adminPw=np;const ok=document.getElementById('saveOk');ok.style.display='flex';setTimeout(()=>ok.style.display='none',2500);updateBtn();}
+function saveAdmin(){apiKey=document.getElementById('apiInp').value.trim();const np=document.getElementById('newPw').value.trim();if(np)adminPw=np;persistSettings();const ok=document.getElementById('saveOk');ok.style.display='flex';setTimeout(()=>ok.style.display='none',2500);updateBtn();}
+
+loadSettings();
+document.getElementById('inp').addEventListener('input', updateBtn);
+updateBtn();
 </script>
 </body>
 </html>
