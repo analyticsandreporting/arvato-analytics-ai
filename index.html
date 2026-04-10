@@ -6,23 +6,23 @@
 <title>Arvato AI Analiz Asistanı</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+<script src="https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#0066B3;--blue-light:#e8f2fb;--blue-mid:#3389c7;--surface:#fff;--surface2:#f6f9fc;--border:#e2eaf2;--text:#1a2332;--muted:#6b7f96;--green:#16a34a;--red:#dc2626;--r:12px;--sh:0 2px 12px rgba(0,102,179,.08);--sh-lg:0 8px 32px rgba(0,102,179,.14)}
+:root{--blue:#0066B3;--blue-light:#e8f2fb;--blue-mid:#3389c7;--surface:#fff;--surface2:#f6f9fc;--border:#e2eaf2;--text:#1a2332;--muted:#6b7f96;--green:#16a34a;--red:#dc2626;--amber:#d97706;--r:12px;--sh:0 2px 12px rgba(0,102,179,.08);--sh-lg:0 8px 32px rgba(0,102,179,.14)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 header{background:var(--blue);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .logo{display:flex;align-items:center;gap:9px;color:#fff;font-size:14px;font-weight:600}
 .logo-icon{width:26px;height:26px;background:rgba(255,255,255,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
 .hdr-r{display:flex;align-items:center;gap:8px}
-.sdot{width:7px;height:7px;border-radius:50%;background:#94a3b8}
+.sdot{width:7px;height:7px;border-radius:50%;background:#94a3b8;transition:.3s}
 .sdot.on{background:#4ade80;box-shadow:0 0 5px #4ade80}
 .stxt{color:rgba(255,255,255,.75);font-size:11px}
 .hdr-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:4px 12px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit;transition:.2s}
 .hdr-btn:hover{background:rgba(255,255,255,.25)}
 .app-body{display:flex;flex:1;overflow:hidden}
-.sidebar{width:248px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar{width:252px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 .sb-sec{padding:14px;border-bottom:1px solid var(--border)}
 .sb-lbl{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 .dstat{display:flex;align-items:center;gap:7px;padding:9px 11px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);font-size:11.5px;color:var(--muted)}
@@ -30,10 +30,14 @@ header{background:var(--blue);padding:0 20px;height:52px;display:flex;align-item
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:9px}
 .sm{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 9px}
 .sm-l{font-size:9px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
-.sm-v{font-size:14px;font-weight:600;color:var(--blue);margin-top:1px;font-family:'DM Mono',monospace}
-.chips{display:flex;flex-direction:column;gap:3px}
-.chip{padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--text);cursor:pointer;transition:.15s;text-align:left;line-height:1.4}
+.sm-v{font-size:13px;font-weight:600;color:var(--blue);margin-top:1px;font-family:'DM Mono',monospace}
+.chip-group{margin-bottom:6px}
+.chip-group-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;padding-left:2px}
+.chip{padding:7px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--text);cursor:pointer;transition:.15s;text-align:left;line-height:1.4;display:block;width:100%;margin-bottom:3px}
 .chip:hover{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
+.chip.exec{border-left:3px solid var(--blue)}
+.chip.ops{border-left:3px solid var(--amber)}
+.chip.risk{border-left:3px solid var(--red)}
 .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
 .welcome{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;text-align:center;box-shadow:var(--sh)}
@@ -44,14 +48,41 @@ header{background:var(--blue);padding:0 20px;height:52px;display:flex;align-item
 .av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px}
 .msg.user .av{background:var(--blue);color:#fff}
 .msg.ai .av{background:var(--blue-light);color:var(--blue)}
-.mc{max-width:82%;display:flex;flex-direction:column;gap:7px}
+.mc{max-width:84%;display:flex;flex-direction:column;gap:7px}
 .msg.user .mc{align-items:flex-end}
-.bubble{padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.65}
+.bubble{padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.7}
 .msg.user .bubble{background:var(--blue);color:#fff;border-bottom-right-radius:3px}
 .msg.ai .bubble{background:var(--surface);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:3px;box-shadow:var(--sh)}
 .bubble strong{font-weight:600}
+.bubble ul{padding-left:16px;margin-top:4px}
+.bubble li{margin-bottom:3px}
 .pos{color:var(--green);font-weight:600}
 .neg{color:var(--red);font-weight:600}
+.warn{color:var(--amber);font-weight:600}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;width:100%}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--sh)}
+.kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+.kpi-value{font-size:20px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace;line-height:1.2}
+.kpi-sub{font-size:11px;margin-top:3px}
+.kpi-card.green{border-top:3px solid var(--green)}
+.kpi-card.red{border-top:3px solid var(--red)}
+.kpi-card.amber{border-top:3px solid var(--amber)}
+.kpi-card.blue{border-top:3px solid var(--blue)}
+
+/* Traffic light */
+.traffic{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500}
+.traffic.green{background:#f0fdf4;border:1px solid #86efac;color:var(--green)}
+.traffic.amber{background:#fffbeb;border:1px solid #fcd34d;color:var(--amber)}
+.traffic.red{background:#fef2f2;border:1px solid #fca5a5;color:var(--red)}
+
+/* Alert box */
+.alert-box{padding:10px 14px;border-radius:8px;font-size:12.5px;line-height:1.6}
+.alert-box.warning{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.alert-box.danger{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.alert-box.info{background:var(--blue-light);border:1px solid #93c5fd;color:#1e40af}
+
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
 .chart-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
 canvas{max-height:220px}
@@ -129,28 +160,58 @@ canvas{max-height:220px}
       </div>
     </div>
     <div class="sb-sec">
-      <div class="sb-lbl">Örnek Sorular</div>
-      <div class="chips">
-        <div class="chip" onclick="suggest(this)">2025 yıllık analiz sunumu hazırla</div>
-        <div class="chip" onclick="suggest(this)">2025 vs 2024 yıllık karşılaştırma</div>
-        <div class="chip" onclick="suggest(this)">Q1 2026 çeyreklik B2C ve B2B kırılımı</div>
-        <div class="chip" onclick="suggest(this)">En yüksek hacimli 10 proje</div>
-        <div class="chip" onclick="suggest(this)">Aylık büyüme oranları 2025</div>
-        <div class="chip" onclick="suggest(this)">Sektör bazında toplam dağılım</div>
-        <div class="chip" onclick="suggest(this)">Son 6 ayda iade adeti trendi</div>
+      <div class="sb-lbl">Hızlı Sorgular</div>
+
+      <div class="chip-group">
+        <div class="chip-group-label">🎯 Yönetim</div>
+        <button class="chip exec" onclick="suggest(this)">Genel durum raporu ver</button>
+        <button class="chip exec" onclick="suggest(this)">Bu ay geçen aya göre nasıl?</button>
+        <button class="chip exec" onclick="suggest(this)">Bu yıl geçen yıla göre büyüme</button>
+        <button class="chip exec" onclick="suggest(this)">2025 yıllık analiz sunumu</button>
+      </div>
+
+      <div class="chip-group">
+        <div class="chip-group-label">📈 Performans</div>
+        <button class="chip" onclick="suggest(this)">En yüksek handling yapılan günler</button>
+        <button class="chip" onclick="suggest(this)">Haftalık ortalama trend</button>
+        <button class="chip" onclick="suggest(this)">CAGR hesapla</button>
+        <button class="chip" onclick="suggest(this)">Sezonluk pattern analizi</button>
+      </div>
+
+      <div class="chip-group">
+        <div class="chip-group-label">🚨 Risk & Anomali</div>
+        <button class="chip risk" onclick="suggest(this)">Anomali ve risk tespiti yap</button>
+        <button class="chip risk" onclick="suggest(this)">Sürekli düşüş olan dönemler</button>
+        <button class="chip risk" onclick="suggest(this)">Beklenmeyen spike günler</button>
+      </div>
+
+      <div class="chip-group">
+        <div class="chip-group-label">🔮 Tahmin</div>
+        <button class="chip" onclick="suggest(this)">Yıl sonu handling tahmini</button>
+        <button class="chip" onclick="suggest(this)">Önümüzdeki ay tahmini</button>
+      </div>
+
+      <div class="chip-group">
+        <div class="chip-group-label">🏆 Proje & Sektör</div>
+        <button class="chip ops" onclick="suggest(this)">Top 10 proje performansı</button>
+        <button class="chip ops" onclick="suggest(this)">Sektör bazında dağılım</button>
+        <button class="chip ops" onclick="suggest(this)">En hızlı büyüyen projeler</button>
       </div>
     </div>
   </div>
+
   <div class="chat-area">
     <div class="msgs" id="msgs">
       <div class="welcome">
         <h2>Merhaba 👋</h2>
-        <p>Arvato AI Analiz Asistanıyım.<br>Yüklenen veri üzerinden istediğiniz analizi yapabilirim.<br>Grafik, tablo, Excel ve PPTX sunum çıktısı üretebilirim.</p>
+        <p>Arvato SCS Türkiye AI Analiz Asistanıyım.<br>
+        Yönetim kararlarını desteklemek için veri analizi, trend tespiti,<br>
+        anomali uyarısı ve tahmin üretebilirim.</p>
       </div>
     </div>
     <div class="input-area">
       <div class="input-wrap">
-        <textarea id="inp" rows="1" placeholder="Sorunuzu yazın... (örn: 2025 aylık sipariş trendi)" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+        <textarea id="inp" rows="1" placeholder="Soru sorun... (örn: Bu ay geçen aya göre nasıl?)" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
         <button id="sndBtn" onclick="send()" disabled>
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
@@ -188,7 +249,7 @@ canvas{max-height:220px}
         <div id="upOk" style="display:none" class="usuccess">✅ <span id="upTxt"></span></div>
       </div>
       <div class="fg">
-        <label class="fl">Yeni Admin Şifresi (boş bırakırsan değişmez)</label>
+        <label class="fl">Yeni Admin Şifresi (boş = değişmez)</label>
         <input type="password" class="fi" id="newPw" placeholder="Yeni şifre">
       </div>
       <button class="btn-pri" onclick="saveAdmin()">💾 Kaydet</button>
@@ -198,160 +259,137 @@ canvas{max-height:220px}
 </div>
 
 <script>
-// ═══ STATE ═══
-let DATA=[], COLS={}, apiKey='', adminPw='arvato2024', history=[], chartRefs=[], dataStats=null;
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let DATA=[], COLS={}, apiKey='', adminPw='arvato2024', chatHistory=[], chartRefs=[];
 
-function loadSettings(){
-  try{
-    apiKey=localStorage.getItem('arvato_api_key')||'';
-    adminPw=localStorage.getItem('arvato_admin_pw')||adminPw;
-  }catch(e){}
-}
-
-function persistSettings(){
-  try{
-    localStorage.setItem('arvato_api_key', apiKey||'');
-    localStorage.setItem('arvato_admin_pw', adminPw||'');
-  }catch(e){}
-}
-
-function escapeHtml(str=''){
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-
-function safeHtml(str=''){
-  return escapeHtml(str)
-    .replace(/
-/g,'<br>')
-    .replace(/▲/g,'<span class="pos">▲</span>')
-    .replace(/▼/g,'<span class="neg">▼</span>');
-}
-
-function getPptxGen(){
-  return window.PptxGenJS || window.pptxgen || window.pptxgenjs || null;
-}
-
-function canRunWithoutApi(question=''){
-  const intent=detectIntent(question||'');
-  return intent!=='ai';
-}
-
-function normalizeExcelDate(value){
-  if(value instanceof Date && !isNaN(value)) return value.toISOString().split('T')[0];
-  if(typeof value==='number' && value>20000){
-    const excelEpoch=new Date(Date.UTC(1899,11,30));
-    const converted=new Date(excelEpoch.getTime()+value*86400000);
-    return converted.toISOString().split('T')[0];
-  }
-  if(typeof value==='string'){
-    const trimmed=value.trim();
-    if(/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0,10);
-    if(/^\d{2}[./-]\d{2}[./-]\d{4}$/.test(trimmed)){
-      const [d,m,y]=trimmed.split(/[./-]/);
-      return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-    }
-    const parsed=new Date(trimmed);
-    if(!isNaN(parsed)) return parsed.toISOString().split('T')[0];
-  }
-  return '';
-}
-
-function computeDataStats(){
-  if(!DATA.length){ dataStats=null; return; }
-  const dates=DATA.map(r=>r._date).filter(Boolean).sort();
-  const projects=new Set(DATA.map(r=>r[COLS.proj]).filter(Boolean));
-  dataStats={rows:DATA.length, projects:projects.size, start:dates[0]||'—', end:dates[dates.length-1]||'—'};
-}
-
-// ═══ KOLON TESPİT ═══
-function detectCols(row) {
+// ═══════════════════════════════════════
+// KOLON TESPİT
+// ═══════════════════════════════════════
+function detectCols(row){
   const keys=Object.keys(row);
-  const find=(...terms)=>keys.find(k=>terms.some(t=>k.toLowerCase().includes(t.toLowerCase())))||null;
+  const find=(...t)=>keys.find(k=>t.some(x=>k.toLowerCase().includes(x.toLowerCase())))||null;
   COLS={
-    date:      find('tarih','date'),
-    proj:      find('proje','project'),
-    sector:    find('sektör','sektor','sector'),
-    b2c_hand:  find('Handling B2C','handling b2c'),
-    b2b_hand:  find('Handling B2B','handling b2b'),
-    b2c_order: find('Order B2C','order b2c'),
-    b2b_order: find('Order B2B','order b2b'),
-    receiving: find('Total Receiving','receiving','Mal Kabul'),
-    ret_b2c:   find('Return Item B2B')=== null ? find('Return Item','return item') : find('Return Item','return item'),
-    ret_b2b:   find('Return Item B2B','return b2b'),
+    date:     find('tarih','date'),
+    proj:     find('proje','project'),
+    sector:   find('sektör','sektor','sector'),
+    b2c_hand: find('Handling B2C','handling b2c'),
+    b2b_hand: find('Handling B2B','handling b2b'),
+    b2c_ord:  find('Order B2C','order b2c'),
+    b2b_ord:  find('Order B2B','order b2b'),
+    recv:     find('Total Receiving','receiving','Mal Kabul'),
+    ret_b2c:  find('Return Item B2B')?find('Return Item','return item'):find('Return Item','return item'),
+    ret_b2b:  find('Return Item B2B','return b2b'),
   };
-  // Fallback: eğer Handling B2C yoksa Order B2C kullan
-  if(!COLS.b2c_hand) COLS.b2c_hand=COLS.b2c_order;
-  if(!COLS.b2b_hand) COLS.b2b_hand=COLS.b2b_order;
+  if(!COLS.b2c_hand) COLS.b2c_hand=COLS.b2c_ord;
+  if(!COLS.b2b_hand) COLS.b2b_hand=COLS.b2b_ord;
 }
 
-function v(row,col){ return !col||!(col in row)?0:Number(String(row[col]).replace(/,/g,''))||0; }
+function v(row,col){ return !col||!(col in row)?0:Number(row[col])||0; }
 function fmt(n){ return Math.round(n).toLocaleString('tr'); }
-function gr(a,b){ return a===0?null:((b-a)/a*100).toFixed(1); }
-function fmtPct(n){
+function fmtK(n){ if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(0)+'K'; return fmt(n); }
+function gr(a,b){ return a===0?null:((b-a)/a*100); }
+function fmtPct(n,dec=1){
   if(n===null||n===undefined) return '—';
   const x=parseFloat(n);
-  return (x>=0?'▲':'▼')+Math.abs(x).toFixed(1)+'%';
+  return (x>=0?'▲':'▼')+Math.abs(x).toFixed(dec)+'%';
 }
 
-// ═══ DOSYA YÜKLEME ═══
-function handleUpload(e) {
+// ═══════════════════════════════════════
+// DOSYA YÜKLEME
+// ═══════════════════════════════════════
+function handleUpload(e){
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    try {
-      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true,raw:true});
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
       const sn=wb.SheetNames.find(n=>n.toLowerCase()==='data')||wb.SheetNames[0];
-      const raw=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:0,raw:true});
+      const raw=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:0});
       DATA=raw.map(row=>{
         const dk=Object.keys(row).find(k=>k.toLowerCase().includes('tarih')||k.toLowerCase().includes('date'))||Object.keys(row)[0];
-        return {...row,_date:normalizeExcelDate(row[dk])};
+        const d=row[dk];
+        row._date=d instanceof Date?d.toISOString().split('T')[0]:typeof d==='string'?d.split('T')[0]:'';
+        return row;
       }).filter(r=>r._date&&r._date.length>=7);
       if(DATA.length) detectCols(DATA[0]);
-      computeDataStats();
       document.getElementById('upOk').style.display='flex';
       document.getElementById('upTxt').textContent=`${file.name} — ${DATA.length.toLocaleString('tr')} satır`;
       updateStatus();
-    } catch(err){alert('Dosya okunamadı: '+err.message);}
+    }catch(err){alert('Dosya okunamadı: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
 }
 
 function updateStatus(){
   if(!DATA.length) return;
-  if(!dataStats) computeDataStats();
   document.getElementById('dstat').className='dstat on';
-  document.getElementById('dstatTxt').textContent=`${dataStats.rows.toLocaleString('tr')} kayıt hazır`;
+  document.getElementById('dstatTxt').textContent=`${DATA.length.toLocaleString('tr')} kayıt hazır`;
   document.getElementById('sg').style.display='grid';
-  document.getElementById('sRows').textContent=dataStats.rows.toLocaleString('tr');
-  document.getElementById('sProj').textContent=dataStats.projects;
-  document.getElementById('sStart').textContent=dataStats.start?.slice(0,7)||'—';
-  document.getElementById('sEnd').textContent=dataStats.end?.slice(0,7)||'—';
+  const projs=[...new Set(DATA.map(r=>r[COLS.proj]))].filter(Boolean);
+  const dates=DATA.map(r=>r._date).sort();
+  document.getElementById('sRows').textContent=DATA.length.toLocaleString('tr');
+  document.getElementById('sProj').textContent=projs.length;
+  document.getElementById('sStart').textContent=dates[0]?.slice(0,7)||'—';
+  document.getElementById('sEnd').textContent=dates[dates.length-1]?.slice(0,7)||'—';
   document.getElementById('sdot').className='sdot on';
   document.getElementById('stxt').textContent='Veri hazır';
   updateBtn();
 }
 
-// ═══ AGGREGATİON ═══
+// ═══════════════════════════════════════
+// AGGREGATİON
+// ═══════════════════════════════════════
+function total(row){ return v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand); }
+
+function aggDaily(filter={}){
+  const d={};
+  DATA.forEach(row=>{
+    if(filter.year&&!row._date.startsWith(filter.year)) return;
+    if(filter.month&&!row._date.startsWith(filter.month)) return;
+    const dt=row._date;
+    if(!d[dt]) d[dt]={b2c:0,b2b:0,recv:0,ret:0,total:0,dow:new Date(dt).getDay()};
+    d[dt].b2c  +=v(row,COLS.b2c_hand);
+    d[dt].b2b  +=v(row,COLS.b2b_hand);
+    d[dt].recv +=v(row,COLS.recv);
+    d[dt].ret  +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
+    d[dt].total+=total(row);
+  });
+  return Object.entries(d).sort().map(([k,vv])=>({date:k,...vv}));
+}
+
+function aggWeekly(filter={}){
+  const w={};
+  DATA.forEach(row=>{
+    if(filter.year&&!row._date.startsWith(filter.year)) return;
+    const d=new Date(row._date);
+    const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
+    const mon=new Date(d.setDate(diff));
+    const wk=mon.toISOString().split('T')[0];
+    if(!w[wk]) w[wk]={b2c:0,b2b:0,total:0,days:new Set()};
+    w[wk].b2c  +=v(row,COLS.b2c_hand);
+    w[wk].b2b  +=v(row,COLS.b2b_hand);
+    w[wk].total+=total(row);
+    w[wk].days.add(row._date);
+  });
+  return Object.entries(w).sort().map(([k,vv])=>({week:k,b2c:vv.b2c,b2b:vv.b2b,total:vv.total,days:vv.days.size}));
+}
+
 function aggMonthly(filter={}){
   const m={};
   DATA.forEach(row=>{
-    if(filter.proj&&row[COLS.proj]!==filter.proj) return;
-    if(filter.sector&&(row[COLS.sector]||'').trim()!==filter.sector) return;
     if(filter.year&&!row._date.startsWith(filter.year)) return;
+    if(filter.proj&&row[COLS.proj]!==filter.proj) return;
     const ym=row._date.slice(0,7);
     if(!m[ym]) m[ym]={b2c:0,b2b:0,recv:0,ret:0,total:0};
-    m[ym].b2c +=v(row,COLS.b2c_hand);
-    m[ym].b2b +=v(row,COLS.b2b_hand);
-    m[ym].recv+=v(row,COLS.receiving);
-    m[ym].ret +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
-    m[ym].total+=v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand);
+    m[ym].b2c  +=v(row,COLS.b2c_hand);
+    m[ym].b2b  +=v(row,COLS.b2b_hand);
+    m[ym].recv +=v(row,COLS.recv);
+    m[ym].ret  +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
+    m[ym].total+=total(row);
   });
-  return Object.entries(m).sort((a,b)=>a[0]>b[0]?1:-1).map(([k,vv])=>({month:k,...vv}));
+  return Object.entries(m).sort().map(([k,vv])=>({month:k,...vv}));
 }
 
 function aggYearly(){
@@ -359,11 +397,11 @@ function aggYearly(){
   DATA.forEach(row=>{
     const yr=row._date.slice(0,4);
     if(!y[yr]) y[yr]={b2c:0,b2b:0,recv:0,ret:0,total:0};
-    y[yr].b2c +=v(row,COLS.b2c_hand);
-    y[yr].b2b +=v(row,COLS.b2b_hand);
-    y[yr].recv+=v(row,COLS.receiving);
-    y[yr].ret +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
-    y[yr].total+=v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand);
+    y[yr].b2c  +=v(row,COLS.b2c_hand);
+    y[yr].b2b  +=v(row,COLS.b2b_hand);
+    y[yr].recv +=v(row,COLS.recv);
+    y[yr].ret  +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
+    y[yr].total+=total(row);
   });
   return Object.entries(y).sort().map(([k,vv])=>({year:k,...vv}));
 }
@@ -372,13 +410,13 @@ function aggQuarterly(yearFilter){
   const q={};
   DATA.forEach(row=>{
     if(yearFilter&&!row._date.startsWith(yearFilter)) return;
-    const yr=row._date.slice(0,4), mo=parseInt(row._date.slice(5,7)), qn=Math.ceil(mo/3), key=`${yr}-Q${qn}`;
+    const yr=row._date.slice(0,4),mo=parseInt(row._date.slice(5,7)),qn=Math.ceil(mo/3),key=`${yr}-Q${qn}`;
     if(!q[key]) q[key]={b2c:0,b2b:0,recv:0,ret:0,total:0};
-    q[key].b2c +=v(row,COLS.b2c_hand);
-    q[key].b2b +=v(row,COLS.b2b_hand);
-    q[key].recv+=v(row,COLS.receiving);
-    q[key].ret +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
-    q[key].total+=v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand);
+    q[key].b2c  +=v(row,COLS.b2c_hand);
+    q[key].b2b  +=v(row,COLS.b2b_hand);
+    q[key].recv +=v(row,COLS.recv);
+    q[key].ret  +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
+    q[key].total+=total(row);
   });
   return Object.entries(q).sort().map(([k,vv])=>({quarter:k,...vv}));
 }
@@ -387,15 +425,17 @@ function aggByProject(limit=20,yearFilter){
   const p={};
   DATA.forEach(row=>{
     if(yearFilter&&!row._date.startsWith(yearFilter)) return;
-    const pr=row[COLS.proj]||'?', sec=(row[COLS.sector]||'').trim();
-    if(!p[pr]) p[pr]={b2c:0,b2b:0,recv:0,ret:0,total:0,sector:sec};
-    p[pr].b2c +=v(row,COLS.b2c_hand);
-    p[pr].b2b +=v(row,COLS.b2b_hand);
-    p[pr].recv+=v(row,COLS.receiving);
-    p[pr].ret +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
-    p[pr].total+=v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand);
+    const pr=row[COLS.proj]||'?',sec=(row[COLS.sector]||'').trim();
+    if(!p[pr]) p[pr]={b2c:0,b2b:0,recv:0,ret:0,total:0,sector:sec,months:new Set()};
+    p[pr].b2c  +=v(row,COLS.b2c_hand);
+    p[pr].b2b  +=v(row,COLS.b2b_hand);
+    p[pr].recv +=v(row,COLS.recv);
+    p[pr].ret  +=v(row,COLS.ret_b2c)+v(row,COLS.ret_b2b);
+    p[pr].total+=total(row);
+    p[pr].months.add(row._date.slice(0,7));
   });
-  return Object.entries(p).sort((a,b)=>b[1].total-a[1].total).slice(0,limit).map(([k,vv])=>({project:k,...vv}));
+  return Object.entries(p).sort((a,b)=>b[1].total-a[1].total).slice(0,limit)
+    .map(([k,vv])=>({project:k,...vv,months:vv.months.size}));
 }
 
 function aggBySector(){
@@ -403,405 +443,756 @@ function aggBySector(){
   DATA.forEach(row=>{
     const sec=(row[COLS.sector]||'Diğer').trim();
     if(!s[sec]) s[sec]={b2c:0,b2b:0,total:0};
-    s[sec].b2c +=v(row,COLS.b2c_hand);
-    s[sec].b2b +=v(row,COLS.b2b_hand);
-    s[sec].total+=v(row,COLS.b2c_hand)+v(row,COLS.b2b_hand);
+    s[sec].b2c  +=v(row,COLS.b2c_hand);
+    s[sec].b2b  +=v(row,COLS.b2b_hand);
+    s[sec].total+=total(row);
   });
   return Object.entries(s).sort((a,b)=>b[1].total-a[1].total).map(([k,vv])=>({sector:k,...vv}));
 }
 
-// ═══ INTENT TESPİT ═══
-function detectIntent(q){
-  q=q.toLowerCase();
-  const has=(...t)=>t.some(x=>q.includes(x));
-  if(has('sunum','pptx','slayt','presentation')) return 'presentation';
-  if(has('excel indir','xlsx indir','export','dışa aktar')) return 'excel_export';
-  if(has('çeyrek','quarter','q1','q2','q3','q4')) return 'quarterly';
-  if((has('yıllık','yil','annual'))&&has('karşılaştır','vs','kıyasl','büyüme','fark')) return 'yearly_compare';
-  if(has('yıllık','yil','annual')) return 'yearly';
-  if(has('aylık','monthly','ay bazında')) return 'monthly';
-  if(has('proje','project')&&has('top','en yüksek','en fazla','sıralama')) return 'top_projects';
-  if(has('sektör','sector')) return 'sector';
-  if(has('iade','return')) return 'returns';
-  if(has('büyüme','growth','artış','trend')) return 'growth';
-  if(has('özet','summary','genel')) return 'summary';
-  return 'ai';
-}
+// ═══════════════════════════════════════
+// ANALİTİK HESAPLAMALAR
+// ═══════════════════════════════════════
 
-function extractYear(q){ const m=q.match(/20\d{2}/g); return m?m[0]:null; }
-
-// ═══ ANALİZ FONKSİYONLARI ═══
-function analyzeYearly(){
-  const rows=aggYearly();
-  return {
-    text:`<strong>Yıllık Performans Özeti</strong> — ${rows.length} yıl verisi`,
-    table:{title:'Yıllık Performans',headers:['Yıl','B2C Elleçleme','B2B Elleçleme','Toplam','Mal Kabul','İade','Büyüme'],
-      rows:rows.map((r,i)=>{const p=i>0?rows[i-1]:null;return[r.year,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmt(r.recv),fmt(r.ret),fmtPct(p?gr(p.total,r.total):null)];})},
-    chart:{type:'bar',title:'Yıllık B2C & B2B Elleçleme',labels:rows.map(r=>r.year),
-      datasets:[{label:'B2C',data:rows.map(r=>r.b2c),color:'#0066B3'},{label:'B2B',data:rows.map(r=>r.b2b),color:'#16a34a'}]},
-    exportData:{yearly:rows}
-  };
-}
-
-function analyzeYearlyCompare(){
-  const rows=aggYearly();
-  if(rows.length<2) return {text:'Karşılaştırma için en az 2 yıl verisi gereklidir.'};
-  return {
-    text:`<strong>Yıllık Büyüme Karşılaştırması</strong>`,
-    table:{title:'Yıllık Büyüme',headers:['Yıl','Toplam Elleçleme','Önceki Yıla Fark','Büyüme Oranı'],
-      rows:rows.map((r,i)=>{const p=i>0?rows[i-1]:null;return[r.year,fmt(r.total),p?fmt(r.total-p.total):'—',fmtPct(p?gr(p.total,r.total):null)];})},
-    chart:{type:'line',title:'Yıllık Toplam Elleçleme Trendi',labels:rows.map(r=>r.year),
-      datasets:[{label:'Toplam',data:rows.map(r=>r.total),color:'#0066B3'}]},
-    exportData:{yearly:rows}
-  };
-}
-
-function analyzeQuarterly(year){
-  const rows=aggQuarterly(year);
-  return {
-    text:`<strong>Çeyreklik Analiz</strong>${year?' — '+year:''}`,
-    table:{title:'Çeyreklik Performans',headers:['Çeyrek','B2C','B2B','Toplam','Mal Kabul','Büyüme'],
-      rows:rows.map((r,i)=>{const p=i>0?rows[i-1]:null;return[r.quarter,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmt(r.recv),fmtPct(p?gr(p.total,r.total):null)];})},
-    chart:{type:'bar',title:`Çeyreklik Elleçleme${year?' ('+year+')':''}`,labels:rows.map(r=>r.quarter),
-      datasets:[{label:'B2C',data:rows.map(r=>r.b2c),color:'#0066B3'},{label:'B2B',data:rows.map(r=>r.b2b),color:'#16a34a'}]},
-    exportData:{quarterly:rows}
-  };
-}
-
-function analyzeMonthly(year){
-  const rows=aggMonthly(year?{year}:{}).slice(-24);
-  return {
-    text:`<strong>Aylık Analiz</strong>${year?' — '+year:' (son 24 ay)'}`,
-    table:{title:'Aylık Performans',headers:['Ay','B2C','B2B','Toplam','İade','Büyüme'],
-      rows:rows.map((r,i)=>{const p=i>0?rows[i-1]:null;return[r.month,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmt(r.ret),fmtPct(p?gr(p.total,r.total):null)];})},
-    chart:{type:'line',title:`Aylık Elleçleme Trendi${year?' ('+year+')':''}`,labels:rows.map(r=>r.month),
-      datasets:[{label:'B2C',data:rows.map(r=>r.b2c),color:'#0066B3'},{label:'B2B',data:rows.map(r=>r.b2b),color:'#16a34a'}]},
-    exportData:{monthly:rows}
-  };
-}
-
-function analyzeTopProjects(year){
-  const rows=aggByProject(15,year);
-  return {
-    text:`<strong>Top 15 Proje${year?' — '+year:''}</strong>`,
-    table:{title:'Proje Bazında Elleçleme',headers:['#','Proje','Sektör','B2C','B2B','Toplam','İade'],
-      rows:rows.map((r,i)=>[i+1,r.project,r.sector||'—',fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmt(r.ret)])},
-    chart:{type:'bar',title:`Top 10 Proje${year?' ('+year+')':''}`,labels:rows.slice(0,10).map(r=>r.project),
-      datasets:[{label:'Toplam',data:rows.slice(0,10).map(r=>r.total),color:'#0066B3'}]},
-    exportData:{projects:rows}
-  };
-}
-
-function analyzeSector(){
-  const rows=aggBySector();
-  const total=rows.reduce((s,r)=>s+r.total,0);
-  return {
-    text:`<strong>Sektör Bazında Dağılım</strong>`,
-    table:{title:'Sektör Analizi',headers:['Sektör','B2C','B2B','Toplam','Pay %'],
-      rows:rows.map(r=>[r.sector,fmt(r.b2c),fmt(r.b2b),fmt(r.total),(r.total/total*100).toFixed(1)+'%'])},
-    chart:{type:'pie',title:'Sektör Dağılımı',labels:rows.map(r=>r.sector),
-      datasets:[{label:'Toplam',data:rows.map(r=>r.total),color:'#0066B3'}]},
-    exportData:{sectors:rows}
-  };
-}
-
-function analyzeReturns(year){
-  const rows=aggMonthly(year?{year}:{}).slice(-12);
-  return {
-    text:`<strong>İade Analizi</strong>${year?' — '+year:''}`,
-    table:{title:'Aylık İade',headers:['Ay','İade Adeti','Toplam Elleçleme','İade Oranı'],
-      rows:rows.map(r=>[r.month,fmt(r.ret),fmt(r.total),(r.total>0?(r.ret/r.total*100).toFixed(2):0)+'%'])},
-    chart:{type:'line',title:'Aylık İade Trendi',labels:rows.map(r=>r.month),
-      datasets:[{label:'İade',data:rows.map(r=>r.ret),color:'#dc2626'}]},
-    exportData:{returns:rows}
-  };
-}
-
-function analyzeGrowth(year){
-  const all=aggMonthly(year?{year}:{});
-  const rows=all.slice(-13);
-  const growthRows=rows.slice(1).map((r,i)=>{const p=rows[i];return[r.month,fmt(r.total),fmt(r.total-p.total),fmtPct(gr(p.total,r.total))];});
-  return {
-    text:`<strong>Büyüme Trendi</strong>${year?' — '+year:''}`,
-    table:{title:'Aylık Büyüme Oranları',headers:['Ay','Toplam','Fark','Büyüme Oranı'],rows:growthRows},
-    chart:{type:'bar',title:'Aylık Büyüme Oranı (%)',labels:rows.slice(1).map(r=>r.month),
-      datasets:[{label:'Büyüme %',data:rows.slice(1).map((r,i)=>parseFloat(gr(rows[i].total,r.total))||0),color:'#0066B3'}]},
-    exportData:{growth:rows.slice(1)}
-  };
-}
-
-function analyzeSummary(){
+// CAGR
+function calcCAGR(){
   const yearly=aggYearly();
+  if(yearly.length<2) return null;
+  const first=yearly[0],last=yearly[yearly.length-1];
+  const n=parseInt(last.year)-parseInt(first.year);
+  if(n<=0||first.total===0) return null;
+  return (Math.pow(last.total/first.total,1/n)-1)*100;
+}
+
+// Rolling average
+function rollingAvg(data,window=7){
+  return data.map((d,i)=>{
+    if(i<window-1) return null;
+    const slice=data.slice(i-window+1,i+1);
+    return slice.reduce((s,x)=>s+x.total,0)/window;
+  });
+}
+
+// Anomali tespiti (Z-score)
+function detectAnomalies(data,threshold=2.5){
+  const vals=data.map(d=>d.total);
+  const mean=vals.reduce((s,x)=>s+x,0)/vals.length;
+  const std=Math.sqrt(vals.reduce((s,x)=>s+(x-mean)**2,0)/vals.length);
+  return data.map(d=>({...d, zscore:(d.total-mean)/std, isAnomaly:Math.abs((d.total-mean)/std)>threshold, isHigh:(d.total-mean)/std>threshold}));
+}
+
+// Standart sapma ve volatilite
+function calcStats(data){
+  const vals=data.map(d=>d.total).filter(x=>x>0);
+  if(!vals.length) return null;
+  const mean=vals.reduce((s,x)=>s+x,0)/vals.length;
+  const std=Math.sqrt(vals.reduce((s,x)=>s+(x-mean)**2,0)/vals.length);
+  const cv=(std/mean)*100;
+  const max=Math.max(...vals), min=Math.min(...vals);
+  return {mean,std,cv,max,min,count:vals.length};
+}
+
+// Lineer forecast
+function linearForecast(data,periods=3){
+  const n=data.length;
+  if(n<3) return [];
+  const xs=data.map((_,i)=>i);
+  const ys=data.map(d=>d.total);
+  const xMean=xs.reduce((s,x)=>s+x,0)/n;
+  const yMean=ys.reduce((s,y)=>s+y,0)/n;
+  const num=xs.reduce((s,x,i)=>s+(x-xMean)*(ys[i]-yMean),0);
+  const den=xs.reduce((s,x)=>s+(x-xMean)**2,0);
+  const slope=den?num/den:0;
+  const intercept=yMean-slope*xMean;
+  const result=[];
+  for(let i=1;i<=periods;i++){
+    const x=n-1+i;
+    result.push({period:i,forecast:Math.max(0,slope*x+intercept),slope});
+  }
+  return result;
+}
+
+// Sürekli düşüş tespiti
+function findConsecutiveDeclines(data,minStreak=3){
+  const streaks=[];
+  let streak=0,start=null;
+  for(let i=1;i<data.length;i++){
+    if(data[i].total<data[i-1].total){
+      if(streak===0) start=data[i-1];
+      streak++;
+    } else {
+      if(streak>=minStreak) streaks.push({start:start.month||start.date,end:data[i-1].month||data[i-1].date,length:streak});
+      streak=0;start=null;
+    }
+  }
+  return streaks;
+}
+
+// Pareto analizi
+function paretoAnalysis(data){
+  const sorted=[...data].sort((a,b)=>b.total-a.total);
+  const grandTotal=sorted.reduce((s,d)=>s+d.total,0);
+  let cum=0;
+  return sorted.map(d=>{cum+=d.total;return{...d,cumPct:(cum/grandTotal*100).toFixed(1)};});
+}
+
+// ═══════════════════════════════════════
+// ZAMAN FİLTRESİ
+// ═══════════════════════════════════════
+function extractYearFilter(q){
+  q=q.toLowerCase();
+  const now=new Date();
+  const currentYear=now.getFullYear();
+  const currentMonth=now.toISOString().slice(0,7);
+
+  const lastNYears=q.match(/son\s*(\d+)\s*yıl/);
+  if(lastNYears){const n=parseInt(lastNYears[1]);const years=[];for(let i=0;i<n;i++)years.push(String(currentYear-i));return{type:'multi_year',years};}
+
+  const lastNMonths=q.match(/son\s*(\d+)\s*ay/);
+  if(lastNMonths) return{type:'last_n_months',n:parseInt(lastNMonths[1])};
+
+  if(q.includes('bu ay')) return{type:'month',month:currentMonth};
+  if(q.includes('geçen ay')){const d=new Date(now.getFullYear(),now.getMonth()-1,1);return{type:'month',month:d.toISOString().slice(0,7)};}
+  if(q.includes('bu yıl')) return{type:'year',year:String(currentYear)};
+  if(q.includes('geçen yıl')) return{type:'year',year:String(currentYear-1)};
+
+  const explicit=q.match(/20\d{2}/g);
+  if(explicit) return{type:'year',year:explicit[0]};
+
+  return{type:'all'};
+}
+
+function extractYear(q){const f=extractYearFilter(q);return f.type==='year'?f.year:null;}
+
+// ═══════════════════════════════════════
+// ANA AI ÇAĞRISI — HAM VERİ İLE
+// ═══════════════════════════════════════
+async function callAI(question, enrichedData){
+  const sys=`Sen Arvato SCS Türkiye'nin üst yönetimine raporlama yapan kıdemli bir lojistik veri analistisın.
+Sana JSON formatında ham analiz verisi verilecek. Bu veriye dayanarak soruyu cevapla.
+
+KURALLAR:
+- Sadece verilen veriyi kullan. Tahmin ve varsayım ekleme — forecast bölümü hariç.
+- Türkçe, net ve yönetici diline uygun cevap ver.
+- Sayıları Türkçe formatında yaz (nokta binlik ayraç, virgül ondalık).
+- ▲ artış, ▼ azalış için kullan.
+- Önemli bulgular, riskler ve fırsatları öne çıkar.
+- Gereksiz teknik detaydan kaçın — sonuçları ve yorumları ön plana al.
+- B2C ve B2B değerleri elleçlenen ürün adedidir (Handling), sipariş adedi değil.
+
+VERİ:
+${JSON.stringify(enrichedData,null,1)}`;
+
+  const msgs=[...chatHistory,{role:'user',content:question}];
+  const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:2048,temperature:0.1,
+      messages:[{role:'system',content:sys},...msgs]})
+  });
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API hatası');}
+  const data=await resp.json();
+  const text=data.choices?.[0]?.message?.content||'Yanıt alınamadı.';
+  chatHistory.push({role:'user',content:question},{role:'assistant',content:text});
+  if(chatHistory.length>20) chatHistory=chatHistory.slice(-20);
+  return text;
+}
+
+// ═══════════════════════════════════════
+// ANALIZLER
+// ═══════════════════════════════════════
+
+// 1. GENEL DURUM RAPORU (GM için)
+async function analyzeExecutiveSummary(){
+  const yearly=aggYearly();
+  const monthly=aggMonthly({}).slice(-24);
+  const lastM=monthly[monthly.length-1];
+  const prevM=monthly[monthly.length-2];
+  const thisY=yearly[yearly.length-1];
+  const prevY=yearly[yearly.length-2];
   const byProj=aggByProject(5);
   const bySec=aggBySector();
-  const lastY=yearly[yearly.length-1];
-  const prevY=yearly[yearly.length-2];
-  const grVal=prevY?gr(prevY.total,lastY.total):null;
+  const cagr=calcCAGR();
+  const stats=calcStats(monthly);
+  const anomalies=detectAnomalies(monthly).filter(d=>d.isAnomaly);
+  const declines=findConsecutiveDeclines(monthly);
+  const forecast=linearForecast(monthly,3);
+  const momGr=prevM?gr(prevM.total,lastM.total):null;
+  const yoyGr=prevY?gr(prevY.total,thisY.total):null;
+
+  const status=momGr===null?'blue':momGr>=5?'green':momGr>=-5?'amber':'red';
+
+  const enriched={
+    ozet:{
+      son_ay:lastM,
+      onceki_ay:prevM,
+      aylik_buyume_pct:momGr?.toFixed(1),
+      son_yil:thisY,
+      onceki_yil:prevY,
+      yoy_buyume_pct:yoyGr?.toFixed(1),
+      cagr_pct:cagr?.toFixed(2),
+      volatilite_cv:stats?.cv?.toFixed(1)
+    },
+    top5_proje:byProj,
+    sektor_dagilim:bySec,
+    anomaliler:anomalies.slice(-5),
+    surekli_dususler:declines,
+    forecast_3ay:forecast,
+    son_12ay:monthly.slice(-12)
+  };
+
+  const aiText=await callAI('Genel durum raporu hazırla. Önemli bulgular, riskler ve fırsatları yönetici perspektifinden değerlendir.', enriched);
+
+  const kpis=[
+    {label:'Son Ay Toplam',value:fmtK(lastM?.total||0),sub:fmtPct(momGr)+' geçen aya göre',color:status},
+    {label:'Yıllık Toplam',value:fmtK(thisY?.total||0),sub:fmtPct(yoyGr)+' YoY',color:yoyGr>=0?'green':'red'},
+    {label:'CAGR',value:cagr?cagr.toFixed(1)+'%':'—',sub:'Bileşik yıllık büyüme',color:'blue'},
+    {label:'Volatilite',value:stats?stats.cv.toFixed(1)+'%':'—',sub:'Coefficient of variation',color:stats?.cv>30?'amber':'green'},
+  ];
+
   return {
-    text:[`<strong>Genel Özet</strong>`,`📅 Tarih: ${DATA.map(r=>r._date).sort()[0]} → ${DATA.map(r=>r._date).sort().pop()}`,
-      `📦 Son yıl (${lastY?.year}) toplam: <strong>${fmt(lastY?.total||0)}</strong>`,
-      grVal!==null?`📈 Önceki yıla büyüme: <strong>${fmtPct(grVal)}</strong>`:'',
-      `🏆 En yüksek proje: <strong>${byProj[0]?.project||'—'}</strong>`,
-      `🏭 Dominant sektör: <strong>${bySec[0]?.sector||'—'}</strong>`].filter(Boolean).join('<br>'),
-    table:{title:'Yıllık Özet',headers:['Yıl','B2C','B2B','Toplam','İade'],
-      rows:yearly.map(r=>[r.year,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmt(r.ret)])},
+    kpis,
+    trafficStatus:status,
+    text:aiText,
+    chart:{type:'line',title:'Son 12 Ay Toplam Elleçleme',
+      labels:monthly.slice(-12).map(r=>r.month),
+      datasets:[{label:'Toplam',data:monthly.slice(-12).map(r=>r.total),color:'#0066B3'}]},
+    exportData:{monthly,yearly}
+  };
+}
+
+// 2. AY KARŞILAŞTIRMASı
+async function analyzeMonthComparison(){
+  const monthly=aggMonthly({});
+  const last=monthly[monthly.length-1];
+  const prev=monthly[monthly.length-2];
+  const sameLast=monthly.find(m=>m.month===`${parseInt(last.month.slice(0,4))-1}${last.month.slice(4)}`);
+  const b2cGr=prev?gr(prev.b2c,last.b2c):null;
+  const b2bGr=prev?gr(prev.b2b,last.b2b):null;
+  const totGr=prev?gr(prev.total,last.total):null;
+  const yoyGr=sameLast?gr(sameLast.total,last.total):null;
+
+  const enriched={bu_ay:last,gecen_ay:prev,gecen_yil_ayni_ay:sameLast,
+    b2c_degisim_pct:b2cGr?.toFixed(1),b2b_degisim_pct:b2bGr?.toFixed(1),
+    toplam_degisim_pct:totGr?.toFixed(1),yoy_degisim_pct:yoyGr?.toFixed(1)};
+
+  const aiText=await callAI('Bu ay ile geçen ayı karşılaştır. Hangi alanda iyileşme hangi alanda gerileme var? Yönetici için özet yorum yap.',enriched);
+
+  const kpis=[
+    {label:'Bu Ay',value:fmtK(last?.total||0),sub:'Toplam elleçleme',color:'blue'},
+    {label:'Geçen Ay',value:fmtK(prev?.total||0),sub:'Karşılaştırma',color:'blue'},
+    {label:'Değişim',value:fmtPct(totGr),sub:'Aylık (MoM)',color:totGr>=0?'green':'red'},
+    {label:'Yıllık Değ.',value:fmtPct(yoyGr),sub:'Geçen yıl aynı ay',color:yoyGr>=0?'green':'red'},
+  ];
+
+  return{
+    kpis,text:aiText,
+    chart:{type:'bar',title:'Aylık Karşılaştırma — B2C & B2B',
+      labels:[prev?.month||'',last?.month||''],
+      datasets:[{label:'B2C',data:[prev?.b2c||0,last?.b2c||0],color:'#0066B3'},{label:'B2B',data:[prev?.b2b||0,last?.b2b||0],color:'#16a34a'}]},
+    exportData:{monthly:monthly.slice(-6)}
+  };
+}
+
+// 3. YıLLIK BÜYÜME
+function analyzeYearlyGrowth(){
+  const yearly=aggYearly();
+  const cagr=calcCAGR();
+  const tableRows=yearly.map((r,i)=>{
+    const p=i>0?yearly[i-1]:null;
+    const grV=p?gr(p.total,r.total):null;
+    return[r.year,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmtPct(grV),fmt(r.recv),fmt(r.ret)];
+  });
+  return{
+    kpis:[
+      {label:'CAGR',value:cagr?cagr.toFixed(1)+'%':'—',sub:`${yearly[0]?.year}→${yearly[yearly.length-1]?.year}`,color:'blue'},
+      {label:'En İyi Yıl',value:yearly.reduce((a,b)=>b.total>a.total?b:a,yearly[0])?.year||'—',sub:'En yüksek hacim',color:'green'},
+      {label:'Toplam Hacim',value:fmtK(yearly.reduce((s,r)=>s+r.total,0)),sub:'Tüm zamanlar',color:'blue'},
+    ],
+    text:`<strong>Yıllık Büyüme Analizi</strong><br>CAGR: <strong>${cagr?cagr.toFixed(2)+'%':'Hesaplanamadı'}</strong>`,
+    table:{title:'Yıllık Performans',headers:['Yıl','B2C','B2B','Toplam','Büyüme','Mal Kabul','İade'],rows:tableRows},
     chart:{type:'bar',title:'Yıllık Toplam Elleçleme',labels:yearly.map(r=>r.year),
-      datasets:[{label:'Toplam',data:yearly.map(r=>r.total),color:'#0066B3'}]},
+      datasets:[{label:'B2C',data:yearly.map(r=>r.b2c),color:'#0066B3'},{label:'B2B',data:yearly.map(r=>r.b2b),color:'#16a34a'}]},
     exportData:{yearly}
   };
 }
 
-// ═══ AI SERBEST SORU ═══
-async function aiAnalysis(question){
-  const yearly=aggYearly(), monthly=aggMonthly({}).slice(-24), byProj=aggByProject(10), bySec=aggBySector();
-  const ctx=`VERİ ÖZETİ (B2C/B2B = Handling/elleçlenen ürün adedi):
-Toplam kayıt: ${DATA.length.toLocaleString('tr')}
+// 4. ANOMALİ & RİSK
+async function analyzeAnomalies(){
+  const monthly=aggMonthly({});
+  const daily=aggDaily({}).slice(-90);
+  const anomMonthly=detectAnomalies(monthly);
+  const anomDaily=detectAnomalies(daily);
+  const highMonths=anomMonthly.filter(d=>d.isAnomaly&&d.isHigh);
+  const lowMonths=anomMonthly.filter(d=>d.isAnomaly&&!d.isHigh);
+  const declines=findConsecutiveDeclines(monthly,3);
+  const stats=calcStats(monthly);
 
-YILLIK:
-${yearly.map(r=>`${r.year}: B2C=${fmt(r.b2c)}, B2B=${fmt(r.b2b)}, Toplam=${fmt(r.total)}, Recv=${fmt(r.recv)}, İade=${fmt(r.ret)}`).join('\n')}
+  const enriched={
+    istatistik:{ortalama:stats?.mean?.toFixed(0),std_sapma:stats?.std?.toFixed(0),volatilite_cv:stats?.cv?.toFixed(1),max:stats?.max,min:stats?.min},
+    yuksek_anomaliler:highMonths.map(d=>({month:d.month,total:d.total,zscore:d.zscore.toFixed(2)})),
+    dusuk_anomaliler:lowMonths.map(d=>({month:d.month,total:d.total,zscore:d.zscore.toFixed(2)})),
+    surekli_dusus_donemler:declines,
+    son_90gun_anomaliler:anomDaily.filter(d=>d.isAnomaly).map(d=>({date:d.date,total:d.total,zscore:d.zscore.toFixed(2),yon:d.isHigh?'yüksek':'düşük'}))
+  };
 
-SON 24 AY:
-${monthly.map(r=>`${r.month}: B2C=${fmt(r.b2c)}, B2B=${fmt(r.b2b)}, Toplam=${fmt(r.total)}`).join('\n')}
+  const aiText=await callAI('Anomali ve risk analizini yönetici gözüyle değerlendir. Operasyonel risk oluşturabilecek pattern var mı? Hangi dönemler endişe verici?',enriched);
 
-TOP 10 PROJE:
-${byProj.map(r=>`${r.project}(${r.sector||'—'}): ${fmt(r.total)}`).join('\n')}
-
-SEKTÖRLER: ${bySec.map(r=>`${r.sector}:${fmt(r.total)}`).join(', ')}`;
-
-  const sys=`Sen Arvato SCS Türkiye lojistik veri analistisın. Sadece verilen veriyi kullan. Türkçe cevap ver. Sayıları Türkçe formatında yaz. ▲ artış, ▼ azalış.\n\n${ctx}`;
-  const msgs=[...history,{role:'user',content:question}];
-  const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-    method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-    body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1500,temperature:0.1,messages:[{role:'system',content:sys},...msgs]})
-  });
-  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API hatası');}
-  const data=await resp.json();
-  const text=(data.choices?.[0]?.message?.content||'Yanıt alınamadı.').trim();
-  history.push({role:'user',content:question},{role:'assistant',content:text});
-  if(history.length>20) history=history.slice(-20);
-  return {text};
+  return{
+    text:aiText,
+    alerts:declines.length>0?[{type:'warning',msg:`${declines.length} adet sürekli düşüş dönemi tespit edildi. En uzunu: ${declines.reduce((a,b)=>b.length>a.length?b:a,{length:0}).length} ay.`}]:[],
+    chart:{type:'line',title:'Aylık Trend & Anomaliler',labels:monthly.map(r=>r.month),
+      datasets:[{label:'Toplam',data:monthly.map(r=>r.total),color:'#0066B3'}]},
+    exportData:{monthly,anomaliler:anomMonthly.filter(d=>d.isAnomaly)}
+  };
 }
 
-// ═══ SUNUM (PPTX) ═══
-async function generatePresentation(year){
-  const yr=year||new Date().getFullYear().toString();
-  const yearly=aggYearly(), monthly=aggMonthly({year:yr}), quarterly=aggQuarterly(yr);
-  const byProj=aggByProject(10,yr), bySec=aggBySector();
-  const thisY=yearly.find(r=>r.year===yr)||yearly[yearly.length-1];
-  const prevY=yearly.find(r=>r.year===(parseInt(yr)-1).toString());
-  const grVal=prevY?gr(prevY.total,thisY?.total):null;
+// 5. TAHMİN
+async function analyzeForecast(){
+  const monthly=aggMonthly({});
+  const last6=monthly.slice(-6);
+  const forecast=linearForecast(monthly,6);
+  const stats=calcStats(monthly);
+  const lastVal=monthly[monthly.length-1]?.total||0;
+  const slope=forecast[0]?.slope||0;
+  const trend=slope>0?'artış':'azalış';
 
-  const PptxCtor=getPptxGen();
-  if(!PptxCtor) throw new Error('PptxGenJS yüklenemedi. İnternet erişimi veya CDN bağlantısını kontrol et.');
-  const pptx=new PptxCtor();
+  const enriched={
+    son_6_ay:last6,
+    trend_yonu:trend,
+    aylik_ortalama_degisim:slope?.toFixed(0),
+    forecast_sonraki_6_ay:forecast,
+    istatistik:stats,
+    not:'Tahmin basit lineer regresyon modelidir. Gerçek değerler kampanya, mevsimsellik ve dış faktörlerden etkilenebilir.'
+  };
+
+  const aiText=await callAI('Tahmin analizini yorumla. Trend sürdürülebilir mi? Risk faktörleri neler? Yönetim için öngörü ve öneriler sun.',enriched);
+
+  const forecastLabels=forecast.map((_,i)=>{
+    const lastDate=new Date(monthly[monthly.length-1].month+'-01');
+    lastDate.setMonth(lastDate.getMonth()+i+1);
+    return lastDate.toISOString().slice(0,7);
+  });
+
+  return{
+    kpis:[
+      {label:'Trend Yönü',value:slope>0?'▲ Artış':'▼ Azalış',sub:`Aylık ~${fmtK(Math.abs(slope))} değişim`,color:slope>0?'green':'red'},
+      {label:'3 Ay Sonra',value:fmtK(forecast[2]?.forecast||0),sub:'Tahmini elleçleme',color:'blue'},
+      {label:'6 Ay Sonra',value:fmtK(forecast[5]?.forecast||0),sub:'Tahmini elleçleme',color:'blue'},
+    ],
+    text:aiText,
+    chart:{type:'line',title:'Gerçekleşen + Tahmin (6 ay)',
+      labels:[...monthly.slice(-6).map(r=>r.month),...forecastLabels],
+      datasets:[
+        {label:'Gerçekleşen',data:[...monthly.slice(-6).map(r=>r.total),...Array(6).fill(null)],color:'#0066B3'},
+        {label:'Tahmin',data:[...Array(6).fill(null),lastVal,...forecast.slice(1).map(f=>f.forecast)],color:'#d97706'}
+      ]},
+    exportData:{son_aylar:last6,forecast}
+  };
+}
+
+// 6. GÜNLÜK ANALİZ
+function analyzeDailyPerformance(year){
+  const daily=aggDaily(year?{year}:{}).slice(-90);
+  if(!daily.length) return{text:'Günlük veri bulunamadı.'};
+  const sorted=[...daily].sort((a,b)=>b.total-a.total);
+  const top5=sorted.slice(0,5);
+  const bot5=sorted.slice(-5).reverse();
+  const stats=calcStats(daily);
+  const ra7=rollingAvg(daily,7);
+  const dowMap=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  const byDow={};
+  daily.forEach(d=>{const dow=dowMap[d.dow];if(!byDow[dow])byDow[dow]={total:0,count:0};byDow[dow].total+=d.total;byDow[dow].count++;});
+  const dowAvg=Object.entries(byDow).map(([k,v])=>({gun:k,ortalama:Math.round(v.total/v.count)})).sort((a,b)=>b.ortalama-a.ortalama);
+
+  return{
+    text:`<strong>Son 90 Gün Günlük Analiz</strong><br>Ortalama: <strong>${fmt(stats?.mean||0)}</strong> · Maks: <strong>${fmt(stats?.max||0)}</strong> · Min: <strong>${fmt(stats?.min||0)}</strong>`,
+    kpis:[
+      {label:'Günlük Ort.',value:fmtK(stats?.mean||0),sub:'Son 90 gün',color:'blue'},
+      {label:'En Yüksek',value:fmtK(stats?.max||0),sub:top5[0]?.date||'',color:'green'},
+      {label:'En Düşük',value:fmtK(stats?.min||0),sub:bot5[0]?.date||'',color:'red'},
+      {label:'Volatilite',value:(stats?.cv||0).toFixed(1)+'%',sub:'Coefficient of variation',color:stats?.cv>30?'amber':'green'},
+    ],
+    table:{title:'En Yoğun 5 Gün (Son 90 Gün)',headers:['Gün','B2C','B2B','Toplam'],
+      rows:top5.map(d=>[d.date,fmt(d.b2c),fmt(d.b2b),fmt(d.total)])},
+    chart:{type:'line',title:'Son 90 Gün Günlük + 7 Günlük Hareketli Ortalama',
+      labels:daily.map(d=>d.date),
+      datasets:[
+        {label:'Günlük',data:daily.map(d=>d.total),color:'#93c5fd'},
+        {label:'7G Hareketli Ort.',data:ra7.map((v,i)=>v!==null?v:daily[i].total),color:'#0066B3'}
+      ]},
+    exportData:{daily:daily.slice(-30),top5_gun:top5,haftaici_ortalama:dowAvg}
+  };
+}
+
+// 7. SEZON ANALİZİ
+async function analyzeSeasonality(){
+  const monthly=aggMonthly({});
+  const byMonthNum={};
+  monthly.forEach(m=>{
+    const mn=parseInt(m.month.slice(5,7));
+    if(!byMonthNum[mn]) byMonthNum[mn]={total:0,count:0,label:['','Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][mn]};
+    byMonthNum[mn].total+=m.total;
+    byMonthNum[mn].count++;
+  });
+  const seasonData=Object.entries(byMonthNum).map(([k,v])=>({ay:v.label,no:parseInt(k),ortalama:Math.round(v.total/v.count)})).sort((a,b)=>a.no-b.no);
+  const peakMonth=seasonData.reduce((a,b)=>b.ortalama>a.ortalama?b:a,seasonData[0]);
+  const lowMonth=seasonData.reduce((a,b)=>b.ortalama<a.ortalama?b:a,seasonData[0]);
+
+  const enriched={aylik_sezon_ortalamalari:seasonData,peak_ay:peakMonth,dusuk_ay:lowMonth,
+    son_3yil_aylik:monthly.filter(m=>parseInt(m.month.slice(0,4))>=new Date().getFullYear()-3)};
+
+  const aiText=await callAI('Sezonluk pattern analizi yap. Hangi aylar sürekli peak? Hangi aylar zayıf? Operasyonel planlama için ne söylersin?',enriched);
+
+  return{
+    text:aiText,
+    chart:{type:'bar',title:'Aylar Bazında Ortalama Elleçleme (Sezonluk Pattern)',
+      labels:seasonData.map(d=>d.ay),
+      datasets:[{label:'Aylık Ortalama',data:seasonData.map(d=>d.ortalama),color:'#0066B3'}]},
+    exportData:{sezon:seasonData}
+  };
+}
+
+// 8. PROJE BÜYÜME SIRALAMASI
+async function analyzeProjectGrowth(){
+  const currentYear=String(new Date().getFullYear());
+  const lastYear=String(new Date().getFullYear()-1);
+  const thisY=aggByProject(50,currentYear);
+  const prevY=aggByProject(50,lastYear);
+  const prevMap={};prevY.forEach(p=>prevMap[p.project]=p.total);
+
+  const withGrowth=thisY.map(p=>({...p,prev:prevMap[p.project]||0,
+    growth:prevMap[p.project]?gr(prevMap[p.project],p.total):null}))
+    .filter(p=>p.total>0);
+
+  const fastest=withGrowth.filter(p=>p.growth!==null).sort((a,b)=>b.growth-a.growth).slice(0,5);
+  const declining=withGrowth.filter(p=>p.growth!==null&&p.growth<-10).sort((a,b)=>a.growth-b.growth).slice(0,5);
+  const newProjects=withGrowth.filter(p=>p.prev===0);
+
+  const enriched={en_hizli_buyuyen:fastest,gerileyen:declining,yeni_projeler:newProjects,
+    bu_yil_top10:thisY.slice(0,10),gecen_yil_top10:prevY.slice(0,10)};
+
+  const aiText=await callAI('Proje büyüme analizini yönetici perspektifinden değerlendir. Hangi projeler fırsat, hangileri risk? Yeni projeler nasıl?',enriched);
+
+  return{
+    text:aiText,
+    table:{title:`${currentYear} En Hızlı Büyüyen Projeler`,
+      headers:['Proje','Sektör',`${lastYear}`,'${currentYear}','Büyüme'],
+      rows:fastest.map(p=>[p.project,p.sector||'—',fmt(p.prev),fmt(p.total),fmtPct(p.growth)])},
+    chart:{type:'bar',title:`En Hızlı Büyüyen 5 Proje (${currentYear} vs ${lastYear})`,
+      labels:fastest.map(p=>p.project),
+      datasets:[{label:lastYear,data:fastest.map(p=>p.prev),color:'#93c5fd'},{label:currentYear,data:fastest.map(p=>p.total),color:'#0066B3'}]},
+    exportData:{proje_buyume:withGrowth}
+  };
+}
+
+// 9. SUNUM
+async function generatePresentation(year){
+  const yr=year||String(new Date().getFullYear());
+  const yearly=aggYearly(),monthly=aggMonthly({year:yr}),quarterly=aggQuarterly(yr);
+  const byProj=aggByProject(10,yr),bySec=aggBySector();
+  const thisY=yearly.find(r=>r.year===yr)||yearly[yearly.length-1];
+  const prevY=yearly.find(r=>r.year===String(parseInt(yr)-1));
+  const grV=prevY?gr(prevY.total,thisY?.total):null;
+  const cagr=calcCAGR();
+
+  const pptx=new PptxGenJS();
   pptx.layout='LAYOUT_WIDE';
-  const BLU='#0066B3',WHT='#FFFFFF',LGT='#e8f2fb',GRY='#6b7f96';
+  const B='#0066B3',W='#FFFFFF',L='#e8f2fb',G='#6b7f96';
+
+  const slide=(title,addFn)=>{const s=pptx.addSlide();if(title){s.addText(title,{x:.4,y:.25,w:12.2,h:.55,fontSize:18,bold:true,color:B});}addFn(s);return s;};
 
   // Kapak
-  const s1=pptx.addSlide();
-  s1.background={color:BLU};
-  s1.addText(`Arvato SCS Türkiye\n${yr} Veri Analizi`,{x:1,y:1.5,w:11,h:2,fontSize:34,bold:true,color:WHT,align:'center'});
-  s1.addText(`Hazırlanma: ${new Date().toLocaleDateString('tr-TR')}`,{x:1,y:4.2,w:11,h:.5,fontSize:13,color:'#93c5fd',align:'center'});
+  const s1=pptx.addSlide();s1.background={color:B};
+  s1.addText(`Arvato SCS Türkiye\n${yr} Performans Analizi`,{x:1,y:1.4,w:11,h:2.2,fontSize:32,bold:true,color:W,align:'center',lineSpacingMultiple:1.3});
+  s1.addText(`Hazırlanma: ${new Date().toLocaleDateString('tr-TR')}`,{x:1,y:4.0,w:11,h:.5,fontSize:13,color:'#93c5fd',align:'center'});
 
-  // KPI
-  const s2=pptx.addSlide();
-  s2.addText(`${yr} Temel Göstergeler`,{x:.4,y:.3,w:12,h:.6,fontSize:20,bold:true,color:BLU});
-  [{label:'Toplam B2C',val:fmt(thisY?.b2c||0)},{label:'Toplam B2B',val:fmt(thisY?.b2b||0)},
-   {label:'Toplam Elleçleme',val:fmt(thisY?.total||0)},{label:'Yıllık Büyüme',val:grVal!==null?fmtPct(grVal):'—'}
-  ].forEach((k,i)=>{
-    const x=0.4+i*3.2;
-    s2.addShape(pptx.ShapeType.rect,{x,y:1.1,w:2.9,h:1.8,fill:{color:LGT},line:{color:'#b3d4f0',width:1}});
-    s2.addText(k.label,{x,y:1.2,w:2.9,h:.4,fontSize:10,color:GRY,align:'center'});
-    s2.addText(k.val,{x,y:1.7,w:2.9,h:.9,fontSize:20,bold:true,color:BLU,align:'center'});
+  // KPI slide
+  slide(`${yr} Temel Göstergeler`,s=>{
+    const kpis=[{l:'Toplam B2C',v:fmt(thisY?.b2c||0)},{l:'Toplam B2B',v:fmt(thisY?.b2b||0)},{l:'Toplam Elleçleme',v:fmt(thisY?.total||0)},{l:'YoY Büyüme',v:grV!==null?fmtPct(grV).replace('▲','+').replace('▼','-'):'—'},{l:'CAGR',v:cagr?cagr.toFixed(1)+'%':'—'},{l:'Mal Kabul',v:fmt(thisY?.recv||0)}];
+    kpis.forEach((k,i)=>{const x=0.4+(i%3)*4.2,y=i<3?1.05:2.85;s.addShape(pptx.ShapeType.rect,{x,y,w:3.9,h:1.5,fill:{color:L},line:{color:'#b3d4f0',width:1}});s.addText(k.l,{x,y:y+.1,w:3.9,h:.35,fontSize:9,color:G,align:'center'});s.addText(k.v,{x,y:y+.5,w:3.9,h:.7,fontSize:20,bold:true,color:B,align:'center'});});
   });
 
   // Aylık tablo
-  const s3=pptx.addSlide();
-  s3.addText(`${yr} Aylık Elleçleme`,{x:.4,y:.3,w:12,h:.6,fontSize:20,bold:true,color:BLU});
-  const mHdr=[{text:'Ay',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2C',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2B',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Toplam',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Büyüme',options:{bold:true,color:WHT,fill:{color:BLU}}}];
-  const mRows=monthly.map((r,i)=>{const p=i>0?monthly[i-1]:null;return[{text:r.month},{text:fmt(r.b2c)},{text:fmt(r.b2b)},{text:fmt(r.total)},{text:fmtPct(p?gr(p.total,r.total):null).replace('▲','+').replace('▼','-')}];});
-  s3.addTable([mHdr,...mRows],{x:.4,y:1.1,w:12.2,fontSize:9,border:{pt:0.5,color:'#e2eaf2'},autoPage:true});
+  slide(`${yr} Aylık Performans`,s=>{
+    const hdr=[['Ay','B2C','B2B','Toplam','Büyüme','İade']].map(row=>row.map(t=>({text:t,options:{bold:true,color:W,fill:{color:B}}})));
+    const rows=monthly.map((r,i)=>{const p=i>0?monthly[i-1]:null;return[r.month,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmtPct(p?gr(p.total,r.total):null).replace('▲','+').replace('▼','-'),fmt(r.ret)].map(t=>({text:t}));});
+    s.addTable([...hdr,...rows],{x:.4,y:.9,w:12.2,fontSize:8.5,border:{pt:.5,color:'#e2eaf2'},autoPage:true});
+  });
+
+  // Çeyreklik
+  slide(`${yr} Çeyreklik Özet`,s=>{
+    const hdr=[['Çeyrek','B2C','B2B','Toplam','Büyüme']].map(r=>r.map(t=>({text:t,options:{bold:true,color:W,fill:{color:B}}})));
+    const rows=quarterly.map((r,i)=>{const p=i>0?quarterly[i-1]:null;return[r.quarter,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmtPct(p?gr(p.total,r.total):null).replace('▲','+').replace('▼','-')].map(t=>({text:t}));});
+    s.addTable([...hdr,...rows],{x:.4,y:.9,w:12.2,fontSize:9,border:{pt:.5,color:'#e2eaf2'}});
+  });
 
   // Top projeler
-  const s4=pptx.addSlide();
-  s4.addText(`Top 10 Proje — ${yr}`,{x:.4,y:.3,w:12,h:.6,fontSize:20,bold:true,color:BLU});
-  const pH=[{text:'#',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Proje',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Sektör',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2C',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2B',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Toplam',options:{bold:true,color:WHT,fill:{color:BLU}}}];
-  s4.addTable([pH,...byProj.slice(0,10).map((r,i)=>[{text:String(i+1)},{text:r.project},{text:r.sector||'—'},{text:fmt(r.b2c)},{text:fmt(r.b2b)},{text:fmt(r.total)}])],{x:.4,y:1.1,w:12.2,fontSize:9,border:{pt:0.5,color:'#e2eaf2'}});
+  slide(`Top 10 Proje — ${yr}`,s=>{
+    const hdr=[['#','Proje','Sektör','B2C','B2B','Toplam']].map(r=>r.map(t=>({text:t,options:{bold:true,color:W,fill:{color:B}}})));
+    const rows=byProj.slice(0,10).map((r,i)=>[String(i+1),r.project,r.sector||'—',fmt(r.b2c),fmt(r.b2b),fmt(r.total)].map(t=>({text:t})));
+    s.addTable([...hdr,...rows],{x:.4,y:.9,w:12.2,fontSize:9,border:{pt:.5,color:'#e2eaf2'}});
+  });
 
   // Sektör
-  const s5=pptx.addSlide();
-  s5.addText('Sektör Bazında Dağılım',{x:.4,y:.3,w:12,h:.6,fontSize:20,bold:true,color:BLU});
-  const tot=bySec.reduce((s,r)=>s+r.total,0);
-  const sH=[{text:'Sektör',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2C',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'B2B',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Toplam',options:{bold:true,color:WHT,fill:{color:BLU}}},{text:'Pay',options:{bold:true,color:WHT,fill:{color:BLU}}}];
-  s5.addTable([sH,...bySec.map(r=>[{text:r.sector},{text:fmt(r.b2c)},{text:fmt(r.b2b)},{text:fmt(r.total)},{text:(r.total/tot*100).toFixed(1)+'%'}])],{x:.4,y:1.1,w:12.2,fontSize:10,border:{pt:0.5,color:'#e2eaf2'}});
+  slide('Sektör Bazında Dağılım',s=>{
+    const tot=bySec.reduce((sum,r)=>sum+r.total,0);
+    const hdr=[['Sektör','B2C','B2B','Toplam','Pay %']].map(r=>r.map(t=>({text:t,options:{bold:true,color:W,fill:{color:B}}})));
+    const rows=bySec.map(r=>[r.sector,fmt(r.b2c),fmt(r.b2b),fmt(r.total),(r.total/tot*100).toFixed(1)+'%'].map(t=>({text:t})));
+    s.addTable([...hdr,...rows],{x:.4,y:.9,w:12.2,fontSize:9.5,border:{pt:.5,color:'#e2eaf2'}});
+  });
 
   await pptx.writeFile({fileName:`Arvato_${yr}_Analiz.pptx`});
-  return {text:`✅ <strong>${yr} Analiz Sunumu</strong> oluşturuldu ve indirildi.<br>İçerik: Kapak · KPI özeti · Aylık tablo · Top projeler · Sektör dağılımı`,noChart:true};
+  return{text:`✅ <strong>${yr} Analiz Sunumu</strong> indirildi.<br>5 slide: Kapak · KPI · Aylık · Çeyreklik · Projeler · Sektör`,noChart:true};
 }
 
-// ═══ EXCEL EXPORT ═══
+// 10. EXCEL EXPORT
 async function generateExcel(year){
-  const yr=year||new Date().getFullYear().toString();
+  const yr=year||String(new Date().getFullYear());
   const wb=XLSX.utils.book_new();
-  const m=aggMonthly({year:yr}), q=aggQuarterly(yr), p=aggByProject(50,yr), s=aggBySector();
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(m),'Aylık');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(q),'Çeyreklik');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(p),'Projeler');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s),'Sektörler');
+  const addSheet=(name,data)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),name);
+  addSheet('Aylık',aggMonthly({year:yr}));
+  addSheet('Çeyreklik',aggQuarterly(yr));
+  addSheet('Projeler',aggByProject(50,yr));
+  addSheet('Sektörler',aggBySector());
+  addSheet('Yıllık',aggYearly());
+  const daily=aggDaily({year:yr});
+  if(daily.length) addSheet('Günlük',daily);
   XLSX.writeFile(wb,`Arvato_${yr}_Analiz.xlsx`);
-  return {text:`✅ <strong>${yr} Analiz Raporu</strong> Excel olarak indirildi.<br>Sayfalar: Aylık · Çeyreklik · Projeler · Sektörler`,noChart:true};
+  return{text:`✅ <strong>${yr} Excel Raporu</strong> indirildi.<br>Sayfalar: Aylık · Çeyreklik · Projeler · Sektörler · Yıllık · Günlük`,noChart:true};
 }
 
-// ═══ ANA ANALİZ ═══
+// ═══════════════════════════════════════
+// INTENT TESPİT
+// ═══════════════════════════════════════
+function detectIntent(q){
+  q=q.toLowerCase();
+  const has=(...t)=>t.some(x=>q.includes(x));
+  if(has('sunum','pptx','slayt')) return 'presentation';
+  if(has('excel indir','xlsx','export','dışa aktar')) return 'excel_export';
+  if(has('genel durum','durum raporu','executive','genel özet','neredeyiz')) return 'executive';
+  if(has('bu ay','geçen ay','aya göre','mom','aylık karşılaştır')) return 'month_compare';
+  if(has('yıllık büyüme','yoy','yıl bazlı','yıl karşılaştır','cagr') && !has('tahmin')) return 'yearly_growth';
+  if(has('anomali','risk','spike','anormal','beklenmeyen','uyarı')) return 'anomaly';
+  if(has('tahmin','forecast','öngörü','yıl sonu','ay sonu','ileriye')) return 'forecast';
+  if(has('günlük','gün bazlı','en yüksek gün','peak gün','hareketli ortalama')) return 'daily';
+  if(has('sezon','mevsim','pattern','döngü','ay başı','ay sonu')) return 'seasonality';
+  if(has('proje büyüme','en hızlı büyüyen','hangi proje','proje karşılaştır')) return 'project_growth';
+  if(has('çeyrek','q1','q2','q3','q4')) return 'quarterly';
+  if(has('sektör')) return 'sector';
+  if(has('proje','top','en yüksek','sıralama')) return 'top_projects';
+  if(has('iade','return')) return 'returns';
+  return 'ai_freeform';
+}
+
 async function analyze(question){
-  const intent=detectIntent(question), year=extractYear(question);
+  const intent=detectIntent(question);
+  const filter=extractYearFilter(question);
+  const year=filter.type==='year'?filter.year:null;
+
   switch(intent){
-    case 'yearly':          return analyzeYearly();
-    case 'yearly_compare':  return analyzeYearlyCompare();
-    case 'quarterly':       return analyzeQuarterly(year);
-    case 'monthly':         return analyzeMonthly(year);
-    case 'top_projects':    return analyzeTopProjects(year);
-    case 'sector':          return analyzeSector();
-    case 'returns':         return analyzeReturns(year);
-    case 'growth':          return analyzeGrowth(year);
-    case 'summary':         return analyzeSummary();
-    case 'presentation':    return generatePresentation(year);
-    case 'excel_export':    return generateExcel(year);
-    default:                return await aiAnalysis(question);
+    case 'executive':      return await analyzeExecutiveSummary();
+    case 'month_compare':  return await analyzeMonthComparison();
+    case 'yearly_growth':  return analyzeYearlyGrowth();
+    case 'anomaly':        return await analyzeAnomalies();
+    case 'forecast':       return await analyzeForecast();
+    case 'daily':          return analyzeDailyPerformance(year);
+    case 'seasonality':    return await analyzeSeasonality();
+    case 'project_growth': return await analyzeProjectGrowth();
+    case 'presentation':   return await generatePresentation(year);
+    case 'excel_export':   return await generateExcel(year);
+    case 'quarterly':{
+      const rows=aggQuarterly(year);
+      return{text:`<strong>Çeyreklik Analiz</strong>${year?' — '+year:''}`,
+        table:{title:'Çeyreklik Performans',headers:['Çeyrek','B2C','B2B','Toplam','Büyüme'],
+          rows:rows.map((r,i)=>{const p=i>0?rows[i-1]:null;return[r.quarter,fmt(r.b2c),fmt(r.b2b),fmt(r.total),fmtPct(p?gr(p.total,r.total):null)];})},
+        chart:{type:'bar',title:'Çeyreklik Elleçleme',labels:rows.map(r=>r.quarter),
+          datasets:[{label:'B2C',data:rows.map(r=>r.b2c),color:'#0066B3'},{label:'B2B',data:rows.map(r=>r.b2b),color:'#16a34a'}]},
+        exportData:{quarterly:rows}};
+    }
+    case 'sector':{
+      const rows=aggBySector();const tot=rows.reduce((s,r)=>s+r.total,0);
+      return{text:'<strong>Sektör Dağılımı</strong>',
+        table:{title:'Sektör Analizi',headers:['Sektör','B2C','B2B','Toplam','Pay'],
+          rows:rows.map(r=>[r.sector,fmt(r.b2c),fmt(r.b2b),fmt(r.total),(r.total/tot*100).toFixed(1)+'%'])},
+        chart:{type:'pie',title:'Sektör Dağılımı',labels:rows.map(r=>r.sector),
+          datasets:[{label:'Toplam',data:rows.map(r=>r.total),color:'#0066B3'}]},
+        exportData:{sectors:rows}};
+    }
+    case 'top_projects':{
+      const rows=aggByProject(15,year);
+      return{text:`<strong>Top 15 Proje${year?' — '+year:''}</strong>`,
+        table:{title:'Proje Performansı',headers:['#','Proje','Sektör','B2C','B2B','Toplam'],
+          rows:rows.map((r,i)=>[i+1,r.project,r.sector||'—',fmt(r.b2c),fmt(r.b2b),fmt(r.total)])},
+        chart:{type:'bar',title:'Top 10 Proje',labels:rows.slice(0,10).map(r=>r.project),
+          datasets:[{label:'Toplam',data:rows.slice(0,10).map(r=>r.total),color:'#0066B3'}]},
+        exportData:{projects:rows}};
+    }
+    case 'returns':{
+      const rows=aggMonthly(year?{year}:{}).slice(-12);
+      return{text:`<strong>İade Analizi</strong>`,
+        table:{title:'Aylık İade',headers:['Ay','İade','Toplam','Oran'],
+          rows:rows.map(r=>[r.month,fmt(r.ret),fmt(r.total),(r.total>0?(r.ret/r.total*100).toFixed(2):0)+'%'])},
+        chart:{type:'line',title:'Aylık İade Trendi',labels:rows.map(r=>r.month),
+          datasets:[{label:'İade',data:rows.map(r=>r.ret),color:'#dc2626'}]},
+        exportData:{returns:rows}};
+    }
+    default:{
+      // Serbest soru — akıllı veri seç
+      const monthly=aggMonthly({}).slice(-24);
+      const yearly=aggYearly();
+      const enriched={
+        yillik:yearly,son_24_ay:monthly,
+        top10_proje:aggByProject(10),sektorler:aggBySector(),
+        istatistik:calcStats(monthly),cagr:calcCAGR()?.toFixed(2)
+      };
+      const text=await callAI(question,enriched);
+      return{text};
+    }
   }
 }
 
-// ═══ RENDER ═══
-const CLRS=['#0066B3','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#059669'];
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+const CLRS=['#0066B3','#16a34a','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#059669','#1d4ed8','#b45309'];
 
 function renderResult(result,container){
+  // Alerts
+  if(result.alerts?.length){
+    result.alerts.forEach(a=>{
+      const el=document.createElement('div');
+      el.className=`alert-box ${a.type==='danger'?'danger':a.type==='info'?'info':'warning'}`;
+      el.innerHTML='⚠️ '+a.msg;
+      container.appendChild(el);
+    });
+  }
+
+  // KPI cards
+  if(result.kpis?.length){
+    const grid=document.createElement('div');grid.className='kpi-grid';
+    result.kpis.forEach(k=>{
+      const card=document.createElement('div');
+      card.className=`kpi-card ${k.color||'blue'}`;
+      card.innerHTML=`<div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-sub ${k.color==='green'?'pos':k.color==='red'?'neg':''}">${k.sub||''}</div>`;
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  }
+
+  // Text bubble
   if(result.text){
-    const b=document.createElement('div');
-    b.className='bubble';
-    b.innerHTML=safeHtml(result.text);
+    const b=document.createElement('div');b.className='bubble';
+    b.innerHTML=result.text.replace(/▲/g,'<span class="pos">▲</span>').replace(/▼/g,'<span class="neg">▼</span>').replace(/\n/g,'<br>');
     container.appendChild(b);
   }
+
   if(result.noChart) return;
 
+  // Chart
   if(result.chart){
-    const card=document.createElement('div'); card.className='chart-card';
+    chartRefs.forEach(c=>{try{c.destroy();}catch(e){}});chartRefs=[];
+    const card=document.createElement('div');card.className='chart-card';
     const id='c'+Date.now();
     card.innerHTML=`<div class="chart-title">${result.chart.title}</div><canvas id="${id}"></canvas>`;
     container.appendChild(card);
     const isPie=result.chart.type==='pie';
     const datasets=result.chart.datasets.map((ds,i)=>({
-      label:ds.label, data:ds.data,
-      backgroundColor:isPie?CLRS.slice(0,ds.data.length):CLRS[i]+(result.chart.type==='line'?'22':'cc'),
-      borderColor:isPie?CLRS.slice(0,ds.data.length):CLRS[i],
+      label:ds.label,data:ds.data,
+      backgroundColor:isPie?CLRS.slice(0,ds.data.filter(x=>x!==null).length):CLRS[i]+(result.chart.type==='line'?'22':'cc'),
+      borderColor:isPie?CLRS.slice(0,ds.data.filter(x=>x!==null).length):CLRS[i],
       borderWidth:result.chart.type==='line'?2:1,
-      fill:result.chart.type==='line', tension:0.35,
-      pointRadius:result.chart.type==='line'?3:0
+      fill:result.chart.type==='line'&&ds.label!=='Tahmin',tension:0.35,
+      pointRadius:result.chart.type==='line'?2:0,
+      spanGaps:false
     }));
     const ch=new Chart(document.getElementById(id),{
-      type:result.chart.type, data:{labels:result.chart.labels,datasets},
+      type:result.chart.type,data:{labels:result.chart.labels,datasets},
       options:{responsive:true,
         plugins:{legend:{labels:{font:{family:'DM Sans',size:11},color:'#6b7f96'}},
-          tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${Number(ctx.raw).toLocaleString('tr')}`}}},
-        scales:isPie?{}:{
-          x:{ticks:{font:{size:10},color:'#6b7f96',maxRotation:45},grid:{display:false}},
-          y:{ticks:{font:{size:10},color:'#6b7f96',callback:vv=>Number(vv).toLocaleString('tr')},grid:{color:'#f0f4f8'}}
-        }}
+          tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;return v===null?' —':` ${ctx.dataset.label}: ${Number(v).toLocaleString('tr')}`;}}}}  ,
+        scales:isPie?{}:{x:{ticks:{font:{size:9},color:'#6b7f96',maxRotation:45},grid:{display:false}},
+          y:{ticks:{font:{size:10},color:'#6b7f96',callback:vv=>fmtK(Number(vv))},grid:{color:'#f0f4f8'}}}}
     });
     chartRefs.push(ch);
   }
 
+  // Table
   if(result.table){
-    const wrap=document.createElement('div'); wrap.className='tbl-wrap';
+    const wrap=document.createElement('div');wrap.className='tbl-wrap';
     let html=`<div class="tbl-title">${result.table.title}</div><table><thead><tr>`;
     result.table.headers.forEach(h=>html+=`<th>${h}</th>`);
     html+='</tr></thead><tbody>';
     result.table.rows.forEach(row=>{
       html+='<tr>';
-      row.forEach(cell=>{const s=String(cell);const cls=s.includes('▲')?'pos':s.includes('▼')?'neg':'';html+=`<td class="${cls}">${escapeHtml(s)}</td>`;});
+      row.forEach(cell=>{const s=String(cell);const cls=s.includes('▲')?'pos':s.includes('▼')?'neg':'';html+=`<td class="${cls}">${s}</td>`;});
       html+='</tr>';
     });
     html+='</tbody></table>';
-    wrap.innerHTML=html; container.appendChild(wrap);
+    wrap.innerHTML=html;container.appendChild(wrap);
   }
 
+  // Export buttons
   if(result.exportData){
-    const row=document.createElement('div'); row.className='exp-row';
-    const eb=document.createElement('button'); eb.className='exp-btn excel'; eb.innerHTML='📥 Excel İndir';
-    eb.onclick=()=>{const wb=XLSX.utils.book_new();const d=result.exportData;
-      if(d.monthly) XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.monthly),'Aylık');
-      if(d.yearly)  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.yearly),'Yıllık');
-      if(d.quarterly)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.quarterly),'Çeyreklik');
-      if(d.projects) XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.projects),'Projeler');
-      if(d.sectors)  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.sectors),'Sektörler');
-      XLSX.writeFile(wb,`Arvato_Analiz_${Date.now()}.xlsx`);};
-    const pb=document.createElement('button'); pb.className='exp-btn pptx'; pb.innerHTML='📊 Sunum İndir';
-    pb.onclick=async()=>{
-      try{
-        const inferredYear=(result.exportData.monthly?.[0]?.month||result.exportData.yearly?.[0]?.year||'').slice(0,4);
-        await generatePresentation(inferredYear || new Date().getFullYear().toString());
-      }catch(err){
-        alert('Sunum oluşturulamadı: '+err.message);
-      }
+    const row=document.createElement('div');row.className='exp-row';
+    const eb=document.createElement('button');eb.className='exp-btn excel';eb.innerHTML='📥 Excel İndir';
+    eb.onclick=()=>{
+      const wb2=XLSX.utils.book_new();const d=result.exportData;
+      Object.entries(d).forEach(([k,v])=>{if(Array.isArray(v)&&v.length) XLSX.utils.book_append_sheet(wb2,XLSX.utils.json_to_sheet(v),k.slice(0,31));});
+      XLSX.writeFile(wb2,`Arvato_${Date.now()}.xlsx`);
     };
-    row.appendChild(eb); row.appendChild(pb); container.appendChild(row);
+    const pb=document.createElement('button');pb.className='exp-btn pptx';pb.innerHTML='📊 Sunum İndir';
+    pb.onclick=()=>send('sunum hazırla');
+    row.appendChild(eb);row.appendChild(pb);container.appendChild(row);
   }
 }
 
-// ═══ CHAT ═══
+// ═══════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════
 async function send(overrideQ){
   const inp=document.getElementById('inp');
   const question=(overrideQ||inp.value).trim();
-  if(!question||!DATA.length) return;
-  if(detectIntent(question)==='ai' && !apiKey){
-    alert('Serbest AI soruları için API anahtarı gerekli. Hazır analizler API olmadan çalışır.');
-    openAdmin();
-    return;
-  }
+  if(!question||!DATA.length||!apiKey) return;
   if(!overrideQ){inp.value='';autoResize(inp);}
   document.getElementById('sndBtn').disabled=true;
   const msgs=document.getElementById('msgs');
-  const um=document.createElement('div'); um.className='msg user';
-  um.innerHTML=`<div class="av">👤</div><div class="mc"><div class="bubble">${escapeHtml(question)}</div></div>`;
+  const um=document.createElement('div');um.className='msg user';
+  um.innerHTML=`<div class="av">👤</div><div class="mc"><div class="bubble">${question}</div></div>`;
   msgs.appendChild(um);
-  const tm=document.createElement('div'); tm.className='msg ai';
+  const tm=document.createElement('div');tm.className='msg ai';
   tm.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="thinking"><div class="tdots"><span></span><span></span><span></span></div> Analiz yapılıyor...</div></div>`;
-  msgs.appendChild(tm); msgs.scrollTop=msgs.scrollHeight;
-  try {
-    const result=await analyze(question); tm.remove();
-    const am=document.createElement('div'); am.className='msg ai';
-    const av=document.createElement('div'); av.className='av'; av.textContent='🤖';
-    const mc=document.createElement('div'); mc.className='mc';
-    am.appendChild(av); am.appendChild(mc); msgs.appendChild(am);
+  msgs.appendChild(tm);msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const result=await analyze(question);tm.remove();
+    const am=document.createElement('div');am.className='msg ai';
+    const av=document.createElement('div');av.className='av';av.textContent='🤖';
+    const mc=document.createElement('div');mc.className='mc';
+    am.appendChild(av);am.appendChild(mc);msgs.appendChild(am);
     renderResult(result,mc);
-  } catch(err){
+  }catch(err){
     tm.remove();
-    const em=document.createElement('div'); em.className='msg ai';
-    em.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="bubble" style="color:var(--red)">Hata: ${escapeHtml(err.message)}</div></div>`;
+    const em=document.createElement('div');em.className='msg ai';
+    em.innerHTML=`<div class="av">🤖</div><div class="mc"><div class="bubble" style="color:var(--red)">Hata: ${err.message}</div></div>`;
     msgs.appendChild(em);
   }
   msgs.scrollTop=msgs.scrollHeight;
-  updateBtn();
+  document.getElementById('sndBtn').disabled=false;
   if(!overrideQ) document.getElementById('inp').focus();
 }
 
-function suggest(el){if(!DATA.length){openAdmin();return;}document.getElementById('inp').value=el.textContent;send();}
+function suggest(el){if(!DATA.length||!apiKey){openAdmin();return;}document.getElementById('inp').value=el.textContent;send();}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
-function updateBtn(){
-  const q=(document.getElementById('inp')?.value||'').trim();
-  const disabled=!DATA.length || (q ? (!canRunWithoutApi(q) && !apiKey) : false);
-  document.getElementById('sndBtn').disabled=disabled;
-}
+function updateBtn(){document.getElementById('sndBtn').disabled=!(DATA.length&&apiKey);}
 
-// ═══ ADMIN ═══
-function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPnl').style.display='none';document.getElementById('pwErr').style.display='none';document.getElementById('pwInp').value='';document.getElementById('apiInp').value=apiKey||'';}
+// ═══════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════
+function openAdmin(){document.getElementById('adminModal').classList.add('open');document.getElementById('loginSec').style.display='block';document.getElementById('adminPnl').style.display='none';document.getElementById('pwErr').style.display='none';document.getElementById('pwInp').value='';}
 function closeAdmin(){document.getElementById('adminModal').classList.remove('open');}
 function checkPw(){if(document.getElementById('pwInp').value===adminPw){document.getElementById('loginSec').style.display='none';document.getElementById('adminPnl').style.display='block';document.getElementById('apiInp').value=apiKey;}else{document.getElementById('pwErr').style.display='block';}}
-function saveAdmin(){apiKey=document.getElementById('apiInp').value.trim();const np=document.getElementById('newPw').value.trim();if(np)adminPw=np;persistSettings();const ok=document.getElementById('saveOk');ok.style.display='flex';setTimeout(()=>ok.style.display='none',2500);updateBtn();}
-
-loadSettings();
-document.getElementById('inp').addEventListener('input', updateBtn);
-updateBtn();
+function saveAdmin(){apiKey=document.getElementById('apiInp').value.trim();const np=document.getElementById('newPw').value;if(np)adminPw=np;const ok=document.getElementById('saveOk');ok.style.display='flex';setTimeout(()=>ok.style.display='none',2500);updateBtn();}
 </script>
 </body>
 </html>
